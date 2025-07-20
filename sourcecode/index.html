@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Theo dõi tư thế (Vai & Đầu)</title>
+    <style>
+        body {
+            font-family: sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-top: 20px;
+            background-color: #f0f2f5;
+        }
+        #videoContainer {
+            position: relative;
+            width: 640px; /* Hoặc kích thước tùy ý */
+            height: 480px; /* Hoặc kích thước tùy ý */
+            background-color: #333;
+            border-radius: 8px;
+            overflow: hidden;
+            margin-bottom: 20px;
+        }
+        #video {
+            width: 100%;
+            height: 100%;
+            transform: scaleX(-1); /* Lật ngang video để giống gương */
+        }
+        #canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            transform: scaleX(-1); /* Lật ngang canvas để khớp với video */
+        }
+        #status {
+            margin-top: 10px;
+            padding: 10px 20px;
+            border-radius: 5px;
+            font-size: 1.2em;
+            font-weight: bold;
+            color: white;
+            background-color: #5cb85c; /* Màu xanh lá cây cho tư thế tốt */
+        }
+        .bad-posture {
+            background-color: #d9534f !important; /* Màu đỏ cho tư thế xấu */
+        }
+    </style>
+</head>
+<body>
+    <h1>Theo dõi tư thế ngồi của bạn</h1>
+    <div id="videoContainer">
+        <video id="video" autoplay playsinline></video>
+        <canvas id="canvas"></canvas>
+    </div>
+    <div id="status">Tư thế: Đang chờ...</div>
+
+    <script src="./tf.min.js"></script>
+    <script src="./pose-detection.min.js"></script>
+
+    <script src="script.js"></script> </body>
+</html>
