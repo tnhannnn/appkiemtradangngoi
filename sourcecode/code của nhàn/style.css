@@ -17,6 +17,15 @@ body{
   width:100%;
   transform:scaleX(-1);
 }
+#canvas{
+  position: absolute;
+  inset:0;
+  z-index: 1;
+  height:100%;
+  width:100%;
+  pointer-events:none;
+  transform:scaleX(-1);  
+}
 #nutbatdaucam{
   position: absolute;
   bottom:30px;
