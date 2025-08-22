@@ -11,7 +11,7 @@ body{
 #webcam{
   position: absolute;
   inset:0;
-  object-fit: cover;
+  object-fit:contain;
   z-index: 0;
   height:100%;
   width:100%;
