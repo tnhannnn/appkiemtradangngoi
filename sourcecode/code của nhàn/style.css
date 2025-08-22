@@ -1,0 +1,32 @@
+*{
+  padding:0px;
+  margin:0px;
+}
+body{
+  position:relative;
+  width:100%;
+  height:100vh;
+  overflow: hidden;
+}
+#webcam{
+  position: absolute;
+  inset:0;
+  object-fit: cover;
+  z-index: 0;
+  height:100%;
+  width:100%;
+  transform:scaleX(-1);
+}
+#nutbatdaucam{
+  position: absolute;
+  bottom:30px;
+  left:50%;
+  transform: translateX(-50%);
+  padding: 1.5em;
+  border-radius: 15em;
+}
+#nutbatdaucam:hover{
+  background-color: blue;
+  transition: ease-in-out 200ms;
+  color:white;
+}
