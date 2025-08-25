@@ -1,41 +1,67 @@
-*{
-  padding:0px;
-  margin:0px;
+* {
+  padding: 0px;
+  margin: 0px;
 }
-body{
-  position:relative;
-  width:100%;
-  height:100vh;
+body {
+  position: relative;
+  width: 100%;
+  height: 100vh;
   overflow: hidden;
+  font-family:'Roboto' , sans-serif;
 }
-#webcam{
+#webcam {
   position: absolute;
-  inset:0;
-  object-fit:contain;
+  inset: 0;
+  object-fit: contain;
   z-index: 0;
-  height:100%;
-  width:100%;
-  transform:scaleX(-1);
+  height: 100%;
+  width: 100%;
+  transform: scaleX(-1);
 }
-#canvas{
+#canvas {
   position: absolute;
-  inset:0;
+  inset: 0;
   z-index: 1;
-  height:100%;
-  width:100%;
-  pointer-events:none;
-  transform:scaleX(-1);  
+  height: 100%;
+  width: 100%;
+  pointer-events: none;
+  transform: scaleX(-1);
+  
 }
-#nutbatdaucam{
-  position: absolute;
-  bottom:30px;
-  left:50%;
-  transform: translateX(-50%);
+.button {
   padding: 1.5em;
   border-radius: 15em;
+  background-color: red;
+  color:white;
+  cursor: pointer;
 }
-#nutbatdaucam:hover{
+.button:hover {
   background-color: blue;
   transition: ease-in-out 200ms;
-  color:white;
+}
+.button-container {
+  position: absolute;
+  left:50%;
+  transform: translateX(-50%);
+  bottom:30px;
+  z-index: 3;
+}
+.huongdan{
+  visibility: hidden;
+  border-radius: 1.5em;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap:1em;
+  z-index:2;
+  position: absolute;
+  left:50%; 
+  top:50%;
+  transform: translate(-50%,-50%);
+  background-color: gray;
+  padding:20px;
+}
+.huongdan img{
+  width:max(200px,40vw);/* ở màn điện thoại nó sẽ là 200px, ở máy tính thì sẽ là 40vw*/
 }

@@ -1,117 +1,128 @@
 console.log("Kết nối JavaScript thành công");
-
+//đoạn này toàn let vì ko phải để chứa thành phần html mà là chứa biến tính toán
 let stream = null;
-let isRunning = false;
+let isRunning = false;// cái này bây giờ sẽ để theo dõi cái hàm tính toán mình có đang gù không đang chạy hay ko 
 let detector = null;
 let poses = [];
-
+let canvaOn = true;//canva(keypoint) có đang hiện hay không
+let isHuongDanOpen = false;//màn hướng dẫn có đang mở hay không
 document.addEventListener("DOMContentLoaded", async () => {
-    const btn = document.getElementById("nutbatdaucam");
-    const video = document.getElementById("webcam");
-    const canvas = document.getElementById("canvas");
-    const ctx = canvas.getContext("2d");
-
-    if (btn) btn.textContent = "Bật Camera";
-
-    function resizeCanvas() {
-        if (video && canvas) {
-            canvas.width = video.videoWidth || window.innerWidth;
-            canvas.height = video.videoHeight || window.innerHeight;
-        }
+  const btn = document.getElementById("nutbatdaucam");//đây là phàn phần html nên toàn const
+  const keypointToggle = document.getElementById("keypoint-toggle");
+  const huongdan = document.getElementById("huongdan");
+  const manHinhHuongDan = document.getElementById("man-hinh-huong-dan");
+  const video = document.getElementById("webcam");
+  const canvas = document.getElementById("canvas");
+  const ctx = canvas.getContext("2d");
+  //dat noi dung cac nut
+  btn.textContent = "Bắt đầu theo dõi";
+  keypointToggle.textContent = "Ẩn keypoint";
+  huongdan.textContent = "Hiện hướng dẫn";
+  keypointToggle.onclick = () => {//1 đoạn code cực ngây thơ để ẩn hiện keypoint
+    if (canvaOn) {
+      canvas.style.display = "none";
+      canvaOn= false;
+      keypointToggle.textContent="Hiện keypoint"
     }
-
-    // Khởi tạo pose detector
-    async function initDetector() {
-        detector = await poseDetection.createDetector(poseDetection.SupportedModels.MoveNet, {
-            modelType: poseDetection.movenet.modelType.SINGLEPOSE_LIGHTNING
-        });
+    else{
+        canvas.style.display="block";
+        canvaOn=true;
+        keypointToggle.textContent="Ẩn keypoint";
     }
-
-    async function startCamera() {
-        try {
-            stream = await navigator.mediaDevices.getUserMedia({ video: true });
-            if (video) {
-                video.srcObject = stream;
-                await video.play();
-                resizeCanvas();
-            }
-            isRunning = true;
-            if (btn) btn.textContent = "Tắt Camera";
-
-            // khởi tạo detector nếu chưa có
-            if (!detector) await initDetector();
-
-            requestAnimationFrame(drawCanvas);
-        } catch (err) {
-            console.error("Không thể truy cập camera:", err);
-            alert("Không thể truy cập camera. Hãy kiểm tra quyền truy cập!");
-        }
+  };
+  huongdan.onclick=()=>{//ẩn hiện cái màn hình hướng dẫn 
+    if (!isHuongDanOpen){//có dấu ! để tư duy ngược nè, cẩn thận đớ 
+        manHinhHuongDan.style.visibility="visible";//đoạn này ko dùng display=none được , nó lỗi với cái flex ở css 
+        huongdan.textContent="Ẩn hướng dẫn";
+        isHuongDanOpen= true;
     }
-
-    function stopCamera() {
-        if (stream) {
-            stream.getTracks().forEach(track => track.stop());
-            stream = null;
-        }
-        if (video) video.srcObject = null;
-        isRunning = false;
-        if (btn) btn.textContent = "Bật Camera";
-
-        if (ctx && canvas) {
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-        }
+    else{
+        manHinhHuongDan.style.visibility="hidden";
+        huongdan.textContent="Hiện hướng dẫn";
+        isHuongDanOpen=false;
     }
-
-    if (btn) {
-        btn.onclick = () => {
-            if (!isRunning) {
-                startCamera();
-            } else {
-                stopCamera();
-            }
-        };
+  }
+  function resizeCanvas() {
+    if (video && canvas) {
+      canvas.width = video.videoWidth || window.innerWidth;
+      canvas.height = video.videoHeight || window.innerHeight;
     }
+  }
 
-    async function drawCanvas() {
-        if (!isRunning) return;
-        if (!ctx || !canvas || !video) return;
+  // Khởi tạo pose detector
+  async function initDetector() {
+    detector = await poseDetection.createDetector(
+      poseDetection.SupportedModels.MoveNet,
+      {
+        modelType: poseDetection.movenet.modelType.SINGLEPOSE_LIGHTNING,
+      }
+    );
+  }
 
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
+  async function startCamera() {
+    try {
+      stream = await navigator.mediaDevices.getUserMedia({ video: true });
+      if (video) {
+        video.srcObject = stream;
+        await video.play();
+        resizeCanvas();
+      }
 
-        // dự đoán pose
-        if (detector) {
-            poses = await detector.estimatePoses(video);
-            if (poses.length > 0) {
-                const pose = poses[0];
-                // vẽ keypoints
-                for (const keypoint of pose.keypoints) {
-                    if (keypoint.score > 0.5) {
-                        ctx.fillStyle = "red";
-                        ctx.beginPath();
-                        ctx.arc(keypoint.x, keypoint.y, 5, 0, Math.PI * 2);
-                        ctx.fill();
-                    }
-                }
+      // khởi tạo detector nếu chưa có
+      if (!detector) await initDetector();
 
-                // vẽ skeleton (nối các keypoints)
-                const adjacentPairs = poseDetection.util.getAdjacentPairs(poseDetection.SupportedModels.MoveNet);
-                ctx.strokeStyle = "lime";
-                ctx.lineWidth = 2;
-                for (const [i, j] of adjacentPairs) {
-                    const kp1 = pose.keypoints[i];
-                    const kp2 = pose.keypoints[j];
-                    if (kp1.score > 0.5 && kp2.score > 0.5) {
-                        ctx.beginPath();
-                        ctx.moveTo(kp1.x, kp1.y);
-                        ctx.lineTo(kp2.x, kp2.y);
-                        ctx.stroke();
-                    }
-                }
-            }
+      requestAnimationFrame(drawCanvas);
+    } catch (err) {
+      console.error("Không thể truy cập camera:", err);
+      //alert("Không thể truy cập camera. Hãy kiểm tra quyền truy cập!");
+    }
+  }
+
+  startCamera();//tự gọi hàm bật cam 
+
+  async function drawCanvas() {
+    
+    if (!ctx || !canvas || !video) return;
+
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    // dự đoán pose
+    if (detector) {
+      poses = await detector.estimatePoses(video);
+      if (poses.length > 0) {
+        const pose = poses[0];
+        // vẽ keypoints
+        for (const keypoint of pose.keypoints) {
+          if (keypoint.score > 0.5) {
+            ctx.fillStyle = "red";
+            ctx.beginPath();
+            ctx.arc(keypoint.x, keypoint.y, 5, 0, Math.PI * 2);
+            ctx.fill();
+          }
         }
 
-        requestAnimationFrame(drawCanvas);
+        // vẽ skeleton (nối các keypoints)
+        const adjacentPairs = poseDetection.util.getAdjacentPairs(
+          poseDetection.SupportedModels.MoveNet
+        );
+        ctx.strokeStyle = "lime";
+        ctx.lineWidth = 2;
+        for (const [i, j] of adjacentPairs) {
+          const kp1 = pose.keypoints[i];
+          const kp2 = pose.keypoints[j];
+          if (kp1.score > 0.5 && kp2.score > 0.5) {
+            ctx.beginPath();
+            ctx.moveTo(kp1.x, kp1.y);
+            ctx.lineTo(kp2.x, kp2.y);
+            ctx.stroke();
+          }
+        }
+      }
     }
 
-    window.addEventListener("resize", resizeCanvas);
+    requestAnimationFrame(drawCanvas);
+  }
+
+  window.addEventListener("resize", resizeCanvas);
 });
+console.log("da chay xong hoan toan file");

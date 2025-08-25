@@ -8,10 +8,20 @@
     <script src="main.js" defer></script>
     <script src="tf.min.js"></script>
     <script src="pose-detection.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto&display=swap" rel="stylesheet"><!--gắn link font roboto của google vào để hiện tiếng việt cho rõ-->
+
   </head>
   <body>
     <video id="webcam"></video>
-    <button id="nutbatdaucam"></button>
+    <div class="button-container">
+      <button class="button" id="nutbatdaucam"></button>
+      <button class="button" id="keypoint-toggle"></button>
+      <button class="button" id="huongdan"></button>
+    </div>
     <canvas id="canvas"></canvas>
+    <div class="huongdan" id="man-hinh-huong-dan">
+      <img src="asset/huongdan.webp" alt="huongdan">
+      <h2>Ngồi thẳng lưng lên, nhìn vào camera và bấm bắt đầu theo dõi</h2>
+    </div>
   </body>
 </html>
