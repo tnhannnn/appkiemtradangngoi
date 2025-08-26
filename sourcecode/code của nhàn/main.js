@@ -44,8 +44,14 @@ document.addEventListener("DOMContentLoaded", async () => {
   }
   function resizeCanvas() {
     if (video && canvas) {
+      // Đặt kích thước canvas đúng bằng kích thước video thực tế
       canvas.width = video.videoWidth || window.innerWidth;
       canvas.height = video.videoHeight || window.innerHeight;
+      /* Đặt style cho canvas để không bị kéo dãn( code gpt , tớ để tạm )
+      canvas.style.width = `${canvas.width}px`;
+      canvas.style.height = `${canvas.height}px`;
+      video.style.width = `${canvas.width}px`;
+      video.style.height = `${canvas.height}px`;*/
     }
   }
 
