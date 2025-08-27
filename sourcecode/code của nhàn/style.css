@@ -17,9 +17,9 @@ body {
   z-index: 0;
   height: 100%;
   width: auto;
-  transform: scaleX(-1);
+  transform: translateX(-50%)scaleX(-1);
   left:50%;
-  transform: translateX(-50%);
+  
   border-radius: 15px;
   outline:2px solid black;
   
@@ -31,9 +31,9 @@ body {
   height: 100%;
   width: auto;
   pointer-events: none;
-  transform: scaleX(-1);
+  transform: translateX(-50%)scaleX(-1);
   left:50%;
-  transform: translateX(-50%);
+  
 }
 .button {
   padding: 1.5em;
