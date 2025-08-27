@@ -147,32 +147,95 @@ document.addEventListener("DOMContentLoaded", async () => {
 console.log("da chay xong hoan toan file");
 // 0: nose, 1: left_eye, 2: right_eye, 3: left_ear, 4: right_ear
 // 5: left_shoulder, 6: right_shoulder
-const duongNoi = [
-  [0, 1],
-  [0, 2], //mũi - mắt
-  [1, 3],
-  [2, 4],
-  [5, 6], //vai trái- vai phải
-];
-function KiemTraTuThe(keypoints) {
-  const leftShoulder = keypoints[5];
-  const rightShoulder = keypoints[6];
-  const nose = keypoints[0];
-  const leftEar = keypoints[3];
-  const rightEar = keypoints[4];
+async function KiemTraTuThe(keypoints) {
+  const vaiTrai = keypoints[5]; 
+  const vaiPhai = keypoints[6]; 
+  const mui = keypoints[0]; 
+  const taiTrai = keypoints[3]; 
+  const taiPhai = keypoints[4]; 
+  const matTrai = keypoints[1]; 
+  const matPhai = keypoints[2];
 
   // Kiểm tra độ tin cậy của các keypoint cần thiết
-  const requiredConfidence = 0.6; // Ngưỡng độ tin cậy tối thiểu, có thể điều chỉnh
+  const doTinCay = 0.6; // Ngưỡng độ tin cậy tối thiểu, có thể điều chỉnh
   // Nếu một trong các keypoint quan trọng có độ tin cậy thấp, có thể người dùng chưa rõ ràng trong khung hình
   if (
-    leftShoulder.score < requiredConfidence ||
-    rightShoulder.score < requiredConfidence ||
-    nose.score < requiredConfidence ||
-    leftEar.score < requiredConfidence ||
-    rightEar.score < requiredConfidence
+    vaiTrai.score < doTinCay ||
+    vaiPhai.score < doTinCay ||
+    mui.score < doTinCay ||
+    taiPhai.score < doTinCay ||
+    taiTrai.score < doTinCay ||
+    matPhai.score < doTinCay || 
+    matTrai.score < doTinCay
   ) {
     //statusDiv.textContent = 'Tư thế: Vui lòng vào giữa khung hình và đảm bảo đủ sáng!';
     //statusDiv.classList.remove('bad-posture');
     return;
   }
+  else {
+    const vectortaimatTrai = {x: matTrai.x - taiTrai.x,y: matTrai.y - taiTrai.y};
+    const vectortaimatPhai = {x: matPhai.x - taiPhai.x,y: matPhai.y - taiPhai.y};
+    const vectormatTraimui = {x: mui.x - matTrai.x,y: mui.y - matTrai.y};
+    const vectormatPhaimui = {x: mui.x - matPhai.x,y: mui.y - matPhai.y};
+    const dodaivectortaimatTrai = Math.sqrt(vectortaimatTrai.x * vectortaimatTrai.x + vectortaimatTrai.y * vectortaimatTrai.y);
+    const dodaivectortaimatPhai = Math.sqrt(vectortaimatPhai.x * vectortaimatPhai.x + vectortaimatPhai.y * vectortaimatPhai.y);
+    const dodaivectormatTraimui = Math.sqrt(vectormatTraimui.x * vectormatTraimui.x + vectormatTraimui.y * vectormatTraimui.y);
+    const dodaivectormatPhaimui = Math.sqrt(vectormatPhaimui.x * vectormatPhaimui.x + vectormatPhaimui.y * vectormatPhaimui.y);
+    const gocTaimatTramui = Math.acos((vectortaimatTrai.x * vectormatTraimui.x + vectortaimatTrai.y * vectormatTraimui.y) / (dodaivectortaimatTrai * dodaivectormatTraimui)) * (180 / Math.PI);
+    const gocTaimatPhaimui = Math.acos((vectortaimatPhai.x * vectormatPhaimui.x + vectortaimatPhai.y * vectormatPhaimui.y) / (dodaivectortaimatPhai * dodaivectormatPhaimui)) * (180 / Math.PI);
+    const gocmatmui= Math.acos((vectormatTraimui.x * vectormatPhaimui.x + vectormatTraimui.y * vectormatPhaimui.y) / (dodaivectormatTraimui * dodaivectormatPhaimui)) * (180 / Math.PI);
+    
+    const DO_LECH_CHO_PHEP = 15; 
+    const TBgoc = (gocTaimatPhaimui+gocTaimatTramui)/2;
+    const TBgocTuTheDung = (TuTheDung.gocTaimatPhaimui + TuTheDung.gocTaimatTraimui) / 2;
+    if (Math.abs(TBgoc - TBgocTuTheDung) > DO_LECH_CHO_PHEP) {
+      //statusDiv.textContent = 'Tư thế: Gù lưng! Hãy ngồi thẳng lưng lên!';
+      //statusDiv.classList.add('bad-posture');
+      console.log("⚠️ Tư thế gù lưng! Hãy ngồi thẳng lưng lên!");
+    } else {
+      //statusDiv.textContent = 'Tư thế: Đúng!';
+      //statusDiv.classList.remove('bad-posture');
+      console.log("✅ Tư thế đúng!");
+    }
+}
+}
+let TuTheDung = null; // biến toàn cục lưu tư thế chuẩn
+
+async function LuuTuTheDung() {
+  const vaiTrai = keypoints[5]; 
+  const vaiPhai = keypoints[6]; 
+  const mui = keypoints[0]; 
+  const taiTrai = keypoints[3]; 
+  const taiPhai = keypoints[4]; 
+  const matTrai = keypoints[1]; 
+  const matPhai = keypoints[2];
+
+  // vector như trong hàm KiemTraTuThe
+  const vectortaimatTrai = {x: matTrai.x - taiTrai.x, y: matTrai.y - taiTrai.y};
+  const vectortaimatPhai = {x: matPhai.x - taiPhai.x, y: matPhai.y - taiPhai.y};
+  const vectormatTraimui = {x: mui.x - matTrai.x, y: mui.y - matTrai.y};
+  const vectormatPhaimui = {x: mui.x - matPhai.x, y: mui.y - matPhai.y};
+
+    const dodaivectortaimatTrai = Math.sqrt(vectortaimatTrai.x * vectortaimatTrai.x + vectortaimatTrai.y * vectortaimatTrai.y);
+    const dodaivectortaimatPhai = Math.sqrt(vectortaimatPhai.x * vectortaimatPhai.x + vectortaimatPhai.y * vectortaimatPhai.y);
+    const dodaivectormatTraimui = Math.sqrt(vectormatTraimui.x * vectormatTraimui.x + vectormatTraimui.y * vectormatTraimui.y);
+    const dodaivectormatPhaimui = Math.sqrt(vectormatPhaimui.x * vectormatPhaimui.x + vectormatPhaimui.y * vectormatPhaimui.y);
+
+  const gocTaimatTraimui = Math.acos(
+    (vectortaimatTrai.x * vectormatTraimui.x + vectortaimatTrai.y * vectormatTraimui.y) / 
+    (dodaivectortaimatTrai * dodaivectormatTraimui)
+  ) * (180 / Math.PI);
+
+  const gocTaimatPhaimui = Math.acos(
+    (vectortaimatPhai.x * vectormatPhaimui.x + vectortaimatPhai.y * vectormatPhaimui.y) / 
+    (dodaivectortaimatPhai * dodaivectormatPhaimui)
+  ) * (180 / Math.PI);
+
+  // Lưu baseline (tư thế chuẩn)
+  TuTheDung = {
+    gocTaimatTraimui,
+    gocTaimatPhaimui
+  };
+
+  console.log("✅ Tư thế chuẩn đã lưu:", baseline);
 }
