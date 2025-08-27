@@ -86,49 +86,81 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   startCamera();//tự gọi hàm bật cam 
 
-  async function drawCanvas() {
-    
-    if (!ctx || !canvas || !video) return;
+async function drawCanvas() {
+  if (!ctx || !canvas || !video) return;
 
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-    // dự đoán pose
-    if (detector) {
-      poses = await detector.estimatePoses(video);
-      if (poses.length > 0) {
-        const pose = poses[0];
-        // vẽ keypoints
-        for (const keypoint of pose.keypoints) {
-          if (keypoint.score > 0.5) {
-            ctx.fillStyle = "red";
-            ctx.beginPath();
-            ctx.arc(keypoint.x, keypoint.y, 5, 0, Math.PI * 2);
-            ctx.fill();
-          }
+  if (detector) {
+    const poses = await detector.estimatePoses(video);
+
+    if (poses.length > 0) {
+      const pose = poses[0];
+
+      // vẽ keypoints
+      for (const keypoint of pose.keypoints) {
+        if (keypoint && keypoint.score > 0.5) {
+          ctx.fillStyle = "red";
+          ctx.beginPath();
+          ctx.arc(keypoint.x, keypoint.y, 5, 0, 2 * Math.PI);
+          ctx.fill();
+
+          // in ra để debug
+          ctx.fillStyle = "white";
+          ctx.font = "10px Arial";
+          ctx.fillText(keypoint.name || "", keypoint.x + 6, keypoint.y + 3);
         }
+      }
 
-        // vẽ skeleton (nối các keypoints)
-        const adjacentPairs = poseDetection.util.getAdjacentPairs(
-          poseDetection.SupportedModels.MoveNet
-        );
-        ctx.strokeStyle = "lime";
-        ctx.lineWidth = 2;
-        for (const [i, j] of adjacentPairs) {
-          const kp1 = pose.keypoints[i];
-          const kp2 = pose.keypoints[j];
-          if (kp1.score > 0.5 && kp2.score > 0.5) {
-            ctx.beginPath();
-            ctx.moveTo(kp1.x, kp1.y);
-            ctx.lineTo(kp2.x, kp2.y);
-            ctx.stroke();
-          }
+      // vẽ skeleton
+      const adjacentPairs = poseDetection.util.getAdjacentPairs(
+        poseDetection.SupportedModels.MoveNet
+      );
+      ctx.strokeStyle = "lime";
+      ctx.lineWidth = 2;
+      for (const [i, j] of adjacentPairs) {
+        const kp1 = pose.keypoints[i];
+        const kp2 = pose.keypoints[j];
+        if (kp1 && kp2 && kp1.score > 0.5 && kp2.score > 0.5) {
+          ctx.beginPath();
+          ctx.moveTo(kp1.x, kp1.y);
+          ctx.lineTo(kp2.x, kp2.y);
+          ctx.stroke();
         }
       }
     }
-
-    requestAnimationFrame(drawCanvas);
   }
+
+  requestAnimationFrame(drawCanvas);
+}
+
 
   window.addEventListener("resize", resizeCanvas);
 });
 console.log("da chay xong hoan toan file");
+// 0: nose, 1: left_eye, 2: right_eye, 3: left_ear, 4: right_ear
+// 5: left_shoulder, 6: right_shoulder
+const duongNoi = [
+[0, 1]
+,[0, 2],//mũi - mắt 
+[1, 3],
+[2, 4],
+[5, 6], //vai trái- vai phải
+]
+function KiemTraTuThe(keypoints) {
+    const leftShoulder = keypoints[5];
+    const rightShoulder = keypoints[6];
+    const nose = keypoints[0];
+    const leftEar = keypoints[3];
+    const rightEar = keypoints[4];
+
+    // Kiểm tra độ tin cậy của các keypoint cần thiết
+    const requiredConfidence = 0.6; // Ngưỡng độ tin cậy tối thiểu, có thể điều chỉnh
+    // Nếu một trong các keypoint quan trọng có độ tin cậy thấp, có thể người dùng chưa rõ ràng trong khung hình
+    if (leftShoulder.score < requiredConfidence || rightShoulder.score < requiredConfidence ||
+        nose.score < requiredConfidence || leftEar.score < requiredConfidence || rightEar.score < requiredConfidence) {
+        //statusDiv.textContent = 'Tư thế: Vui lòng vào giữa khung hình và đảm bảo đủ sáng!';
+        //statusDiv.classList.remove('bad-posture');
+        return;
+    }
+}
