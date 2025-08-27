@@ -6,6 +6,7 @@ let detector = null;
 let poses = [];
 let canvaOn = false; //canva(keypoint) có đang hiện hay không
 let isHuongDanOpen = false; //màn hướng dẫn có đang mở hay không
+tf.setBackend("webgl");
 document.addEventListener("DOMContentLoaded", async () => {
   const btn = document.getElementById("nutbatdaucam"); //đây là phàn phần html nên toàn const
   const keypointToggle = document.getElementById("keypoint-toggle");
@@ -48,11 +49,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       // Đặt kích thước canvas đúng bằng kích thước video thực tế
       canvas.width = video.videoWidth || window.innerWidth;
       canvas.height = video.videoHeight || window.innerHeight;
-      /* Đặt style cho canvas để không bị kéo dãn( code gpt , tớ để tạm )
-      canvas.style.width = `${canvas.width}px`;
-      canvas.style.height = `${canvas.height}px`;
-      video.style.width = `${canvas.width}px`;
-      video.style.height = `${canvas.height}px`;*/
+      
     }
   }
 
