@@ -62,6 +62,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       poseDetection.SupportedModels.MoveNet,
       {
         modelType: poseDetection.movenet.modelType.SINGLEPOSE_LIGHTNING,
+        modelUrl: "./models/model.json"
       }
     );
   }
@@ -92,7 +93,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-    if (detector) {
+    if (detector && canvaOn) {
       const poses = await detector.estimatePoses(video);
 
       if (poses.length > 0) {

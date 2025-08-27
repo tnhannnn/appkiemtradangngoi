@@ -15,13 +15,17 @@
     <!--gắn link font roboto của google vào để hiện tiếng việt cho rõ-->
   </head>
   <body>
-    <video id="webcam"></video>
+    <div class="video-wrapper">
+      <canvas id="canvas"></canvas>
+      <video id="webcam"></video>
+      <div id="statusDiv"></div>
+    </div>
     <div class="button-container">
       <button class="button" id="nutbatdaucam"></button>
       <button class="button" id="keypoint-toggle"></button>
       <button class="button" id="huongdan"></button>
     </div>
-    <canvas id="canvas"></canvas>
+
     <div class="huongdan" id="man-hinh-huong-dan">
       <img src="asset/huongdan.webp" alt="huongdan" />
       <h2>Ngồi thẳng lưng lên, nhìn vào camera và bấm bắt đầu theo dõi</h2>
