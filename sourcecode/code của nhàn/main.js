@@ -5,10 +5,12 @@ let isRunning = false; // cái này bây giờ sẽ để theo dõi cái hàm t�
 let detector = null;
 let poses = [];
 let canvaOn = false; //canva(keypoint) có đang hiện hay không
-let isHuongDanOpen = false; //màn hướng dẫn có đang mở hay không
+let isHuongDanOpen = false //màn hướng dẫn có đang mở hay không
+let currentKeypoints = null; 
 tf.setBackend("webgl");
-document.addEventListener("DOMContentLoaded", async () => {
-  const btn = document.getElementById("nutbatdaucam"); //đây là phàn phần html nên toàn const
+document.addEventListener("DOMContentLoaded", async () => {//đợi html load xong thì chạy
+  const btn = document.getElementById("nutbatdaucam"); //đây là phàn phần html nên toàn const 
+  const statusDiv=document.getElementById("statusDiv");
   const keypointToggle = document.getElementById("keypoint-toggle");
   const huongdan = document.getElementById("huongdan");
   const manHinhHuongDan = document.getElementById("man-hinh-huong-dan");
@@ -49,7 +51,6 @@ document.addEventListener("DOMContentLoaded", async () => {
       // Đặt kích thước canvas đúng bằng kích thước video thực tế
       canvas.width = video.videoWidth || window.innerWidth;
       canvas.height = video.videoHeight || window.innerHeight;
-      
     }
   }
 
@@ -59,7 +60,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       poseDetection.SupportedModels.MoveNet,
       {
         modelType: poseDetection.movenet.modelType.SINGLEPOSE_LIGHTNING,
-        modelUrl: "./models/model.json"
+        modelUrl: "./models/model.json",
       }
     );
   }
@@ -95,10 +96,10 @@ document.addEventListener("DOMContentLoaded", async () => {
 
       if (poses.length > 0) {
         const pose = poses[0];
-
+        currentKeypoints= pose.keypoints;
         // vẽ keypoints
         for (const keypoint of pose.keypoints) {
-          if (keypoint && keypoint.score > 0.5) {
+          if (keypoint && keypoint.score > 0.6) {
             ctx.fillStyle = "red";
             ctx.beginPath();
             ctx.arc(keypoint.x, keypoint.y, 5, 0, 2 * Math.PI);
@@ -141,11 +142,103 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     requestAnimationFrame(drawCanvas);
   }
+  // 0: nose, 1: left_eye, 2: right_eye, 3: left_ear, 4: right_ear
+  // 5: left_shoulder, 6: right_shoulder
+ function KiemTraTuThe(keypoints) {
+    console.log("ditcu chay roi");
+    const vaiTrai = keypoints[5];
+    const vaiPhai = keypoints[6];
+    const mui = keypoints[0];
+    const taiTrai = keypoints[3];
+    const taiPhai = keypoints[4];
+    const matTrai = keypoints[1];
+    const matPhai = keypoints[2];
+
+    // Kiểm tra độ tin cậy của các keypoint cần thiết
+    const doTinCay = 0.6; // Ngưỡng độ tin cậy tối thiểu, có thể điều chỉnh
+    // Nếu một trong các keypoint quan trọng có độ tin cậy thấp, có thể người dùng chưa rõ ràng trong khung hình
+    if (
+      vaiTrai.score < doTinCay ||
+      vaiPhai.score < doTinCay ||
+      mui.score < doTinCay ||
+      taiPhai.score < doTinCay ||
+      taiTrai.score < doTinCay ||
+      matPhai.score < doTinCay ||
+      matTrai.score < doTinCay
+    ) {
+      statusDiv.textContent = 'Tư thế: Vui lòng vào giữa khung hình và đảm bảo đủ sáng!';
+      statusDiv.classList.remove('bad-posture');
+      return;
+    } else {
+      const gocTaimatPhaimui = goc(taiPhai, matPhai, mui);
+      const gocTaimatTraimui = goc(taiTrai, matTrai, mui);
+
+      const DO_LECH_CHO_PHEP = 15;
+      const TBgoc = (gocTaimatPhaimui + gocTaimatTraimui) / 2;
+      const TBgocTuTheDung = (TuTheDung.gocTaimatPhaimui + TuTheDung.gocTaimatTraimui) / 2;
+      if (Math.abs(TBgoc - TBgocTuTheDung) > DO_LECH_CHO_PHEP) {
+        statusDiv.textContent = 'Tư thế: Gù lưng! Hãy ngồi thẳng lưng lên!';
+        statusDiv.classList.add('bad-posture');
+        console.log("⚠️ Tư thế gù lưng! Hãy ngồi thẳng lưng lên!");
+      } else {
+        statusDiv.textContent = 'Tư thế: Đúng!';
+        statusDiv.classList.remove('bad-posture');
+        console.log("✅ Tư thế đúng!");
+      }
+    }
+  }
+  let TuTheDung = null; // biến toàn cục lưu tư thế chuẩn
+
+  async function LuuTuTheDung(keypoints) {
+    const vaiTrai = keypoints[5];
+    const vaiPhai = keypoints[6];
+    const mui = keypoints[0];
+    const taiTrai = keypoints[3];
+    const taiPhai = keypoints[4];
+    const matTrai = keypoints[1];
+    const matPhai = keypoints[2];
+
+    const gocTaimatPhaimui = goc(taiPhai, matPhai, mui);
+    const gocTaimatTraimui = goc(taiTrai, matTrai, mui);
+    // Lưu baseline (tư thế chuẩn)
+    TuTheDung = {
+      gocTaimatTraimui,
+      gocTaimatPhaimui,
+    };
+
+    console.log("✅ Tư thế chuẩn đã lưu:", TuTheDung);
+  }
+  function goc(a, b, c) {
+    vectorBA = { x: a.x - b.x, y: a.y - b.y };
+    vectorBC = { x: c.x - b.x, y: c.y - b.y };
+    dodaiBA = Math.sqrt(vectorBA.x * vectorBA.x + vectorBA.y * vectorBA.y);
+    dodaiBC = Math.sqrt(vectorBC.x * vectorBC.x + vectorBC.y * vectorBC.y);
+    return (
+      Math.acos(
+        (vectorBA.x * vectorBC.x + vectorBA.y * vectorBC.y) /
+          (dodaiBA * dodaiBC)
+      ) *
+      (180 / Math.PI)
+    );
+  }
+
+  let currentKeypoints = null; // biến toàn cục lưu keypoints hiện tại
+  document.getElementById("nutbatdaucam").onclick = () => {
+    if (poses.length > 0) {
+      LuuTuTheDung(poses[0].keypoints);
+      console.log("Đã lưu tư thế đúng");
+      setInterval(() => {
+        KiemTraTuThe(currentKeypoints);
+      }, 3000);
+    } else {
+      console.log("❌ Chưa có dữ liệu keypoints từ camera");
+    }
+  };
 
   window.addEventListener("resize", resizeCanvas);
 });
 console.log("da chay xong hoan toan file");
-// 0: nose, 1: left_eye, 2: right_eye, 3: left_ear, 4: right_ear
+/* 0: nose, 1: left_eye, 2: right_eye, 3: left_ear, 4: right_ear
 // 5: left_shoulder, 6: right_shoulder
 async function KiemTraTuThe(keypoints) {
   const vaiTrai = keypoints[5]; 
@@ -226,7 +319,12 @@ document.getElementById("nutbatdaucam").onclick = () => {
     LuuTuTheDung(poses[0].keypoints);
     currentKeypoints = poses[0].keypoints;
     console.log("Đã lưu tư thế đúng");
+    setInterval(() => {
+      KiemTraTuThe(poses[0].keypoints);
+    }, 3000);
+    KiemTraTuThe(poses[0].keypoints);
   } else {
     console.log("❌ Chưa có dữ liệu keypoints từ camera");
   }
 };
+*/
