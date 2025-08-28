@@ -91,7 +91,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
     if (detector && canvaOn) {
-      const poses = await detector.estimatePoses(video);
+      poses = await detector.estimatePoses(video);
 
       if (poses.length > 0) {
         const pose = poses[0];
@@ -173,17 +173,9 @@ async function KiemTraTuThe(keypoints) {
     return;
   }
   else {
-    const vectortaimatTrai = {x: matTrai.x - taiTrai.x,y: matTrai.y - taiTrai.y};
-    const vectortaimatPhai = {x: matPhai.x - taiPhai.x,y: matPhai.y - taiPhai.y};
-    const vectormatTraimui = {x: mui.x - matTrai.x,y: mui.y - matTrai.y};
-    const vectormatPhaimui = {x: mui.x - matPhai.x,y: mui.y - matPhai.y};
-    const dodaivectortaimatTrai = Math.sqrt(vectortaimatTrai.x * vectortaimatTrai.x + vectortaimatTrai.y * vectortaimatTrai.y);
-    const dodaivectortaimatPhai = Math.sqrt(vectortaimatPhai.x * vectortaimatPhai.x + vectortaimatPhai.y * vectortaimatPhai.y);
-    const dodaivectormatTraimui = Math.sqrt(vectormatTraimui.x * vectormatTraimui.x + vectormatTraimui.y * vectormatTraimui.y);
-    const dodaivectormatPhaimui = Math.sqrt(vectormatPhaimui.x * vectormatPhaimui.x + vectormatPhaimui.y * vectormatPhaimui.y);
-    const gocTaimatTramui = Math.acos((vectortaimatTrai.x * vectormatTraimui.x + vectortaimatTrai.y * vectormatTraimui.y) / (dodaivectortaimatTrai * dodaivectormatTraimui)) * (180 / Math.PI);
-    const gocTaimatPhaimui = Math.acos((vectortaimatPhai.x * vectormatPhaimui.x + vectortaimatPhai.y * vectormatPhaimui.y) / (dodaivectortaimatPhai * dodaivectormatPhaimui)) * (180 / Math.PI);
-    const gocmatmui= Math.acos((vectormatTraimui.x * vectormatPhaimui.x + vectormatTraimui.y * vectormatPhaimui.y) / (dodaivectormatTraimui * dodaivectormatPhaimui)) * (180 / Math.PI);
+  
+   const gocTaimatPhaimui = goc(taiPhai, matPhai, mui);
+   const gocTaimatTraimui = goc(taiTrai, matTrai, mui);
     
     const DO_LECH_CHO_PHEP = 15; 
     const TBgoc = (gocTaimatPhaimui+gocTaimatTramui)/2;
@@ -201,7 +193,7 @@ async function KiemTraTuThe(keypoints) {
 }
 let TuTheDung = null; // biến toàn cục lưu tư thế chuẩn
 
-async function LuuTuTheDung() {
+async function LuuTuTheDung(keypoints) {
   const vaiTrai = keypoints[5]; 
   const vaiPhai = keypoints[6]; 
   const mui = keypoints[0]; 
@@ -210,32 +202,31 @@ async function LuuTuTheDung() {
   const matTrai = keypoints[1]; 
   const matPhai = keypoints[2];
 
-  // vector như trong hàm KiemTraTuThe
-  const vectortaimatTrai = {x: matTrai.x - taiTrai.x, y: matTrai.y - taiTrai.y};
-  const vectortaimatPhai = {x: matPhai.x - taiPhai.x, y: matPhai.y - taiPhai.y};
-  const vectormatTraimui = {x: mui.x - matTrai.x, y: mui.y - matTrai.y};
-  const vectormatPhaimui = {x: mui.x - matPhai.x, y: mui.y - matPhai.y};
-
-    const dodaivectortaimatTrai = Math.sqrt(vectortaimatTrai.x * vectortaimatTrai.x + vectortaimatTrai.y * vectortaimatTrai.y);
-    const dodaivectortaimatPhai = Math.sqrt(vectortaimatPhai.x * vectortaimatPhai.x + vectortaimatPhai.y * vectortaimatPhai.y);
-    const dodaivectormatTraimui = Math.sqrt(vectormatTraimui.x * vectormatTraimui.x + vectormatTraimui.y * vectormatTraimui.y);
-    const dodaivectormatPhaimui = Math.sqrt(vectormatPhaimui.x * vectormatPhaimui.x + vectormatPhaimui.y * vectormatPhaimui.y);
-
-  const gocTaimatTraimui = Math.acos(
-    (vectortaimatTrai.x * vectormatTraimui.x + vectortaimatTrai.y * vectormatTraimui.y) / 
-    (dodaivectortaimatTrai * dodaivectormatTraimui)
-  ) * (180 / Math.PI);
-
-  const gocTaimatPhaimui = Math.acos(
-    (vectortaimatPhai.x * vectormatPhaimui.x + vectortaimatPhai.y * vectormatPhaimui.y) / 
-    (dodaivectortaimatPhai * dodaivectormatPhaimui)
-  ) * (180 / Math.PI);
-
+  const gocTaimatPhaimui = goc(taiPhai, matPhai, mui);
+  const gocTaimatTraimui = goc(taiTrai, matTrai, mui);
   // Lưu baseline (tư thế chuẩn)
   TuTheDung = {
     gocTaimatTraimui,
     gocTaimatPhaimui
   };
 
-  console.log("✅ Tư thế chuẩn đã lưu:", baseline);
+  console.log("✅ Tư thế chuẩn đã lưu:", TuTheDung);
 }
+function goc(a,b,c) {
+    vectorBA= {x: a.x - b.x, y: a.y - b.y};
+    vectorBC= {x: c.x - b.x, y: c.y - b.y};
+    dodaiBA= Math.sqrt(vectorBA.x * vectorBA.x + vectorBA.y * vectorBA.y);
+    dodaiBC= Math.sqrt(vectorBC.x * vectorBC.x + vectorBC.y * vectorBC.y);
+    return Math.acos((vectorBA.x * vectorBC.x + vectorBA.y * vectorBC.y) / (dodaiBA * dodaiBC)) * (180 / Math.PI);
+}
+
+let currentKeypoints = null; // biến toàn cục lưu keypoints hiện tại
+document.getElementById("nutbatdaucam").onclick = () => {
+  if (poses.length > 0) {
+    LuuTuTheDung(poses[0].keypoints);
+    currentKeypoints = poses[0].keypoints;
+    console.log("Đã lưu tư thế đúng");
+  } else {
+    console.log("❌ Chưa có dữ liệu keypoints từ camera");
+  }
+};
