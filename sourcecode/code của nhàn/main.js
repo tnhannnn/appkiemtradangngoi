@@ -97,20 +97,28 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
   }
 
-  // ⬅️ Hàm chỉ cập nhật keypoints (KHÔNG vẽ)
-  async function updateKeypoints() {
+
+  // gọi estimatePoses giới hạn 10 lần/giây
+  let lastDetectTime = 0;
+  async function updateKeypoints(timestamp) {
     if (!detector || !video) return;
-    const detectedPoses = await detector.estimatePoses(video);
-    if (detectedPoses && detectedPoses.length > 0) {
-      currentKeypoints = detectedPoses[0].keypoints;
-    } else {
-      currentKeypoints = null;
+    if (timestamp - lastDetectTime > 100) { // 100ms = 10fps
+      const detectedPoses = await detector.estimatePoses(video);
+      if (detectedPoses && detectedPoses.length > 0) {
+        currentKeypoints = detectedPoses[0].keypoints;
+      } else {
+        currentKeypoints = null;
+      }
+      lastDetectTime = timestamp;
     }
   }
 
-  // ⬅️ Hàm chỉ vẽ (KHÔNG đụng tới detector)
+  // Hàm vẽ keypoints + skeleton
   function drawKeypoints() {
-    if (!ctx || !canvas || !currentKeypoints || !canvaOn) return;
+    if (!ctx || !canvas) return;
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    if (!currentKeypoints || !canvaOn) return;
 
     // vẽ keypoints
     for (const keypoint of currentKeypoints) {
@@ -150,16 +158,10 @@ document.addEventListener("DOMContentLoaded", async () => {
   }
 
   // Vòng lặp khung hình
-  async function loop() {
-    if (!ctx || !canvas) return;
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-    await updateKeypoints();  // chỉ cập nhật dữ liệu
-    drawKeypoints();          // chỉ vẽ
-
-    // (Tùy chọn) kiểm tra tư thế realtime nếu muốn
-    // if (currentKeypoints) KiemTraTuThe(currentKeypoints);
-
+  async function loop(timestamp) {
+    await updateKeypoints(timestamp);  // chỉ cập nhật dữ liệu (có throttling)
+    drawKeypoints();                   // vẽ mượt mỗi frame
+    // nếu muốn check tư thế realtime: if (currentKeypoints) KiemTraTuThe(currentKeypoints);
     requestAnimationFrame(loop);
   }
 
@@ -170,7 +172,6 @@ document.addEventListener("DOMContentLoaded", async () => {
 });
 
 console.log("đã chạy xong hoàn toàn file");
-
 // ====== Các hàm xử lý tư thế (để ngoài DOMContentLoaded cũng được) ======
 async function KiemTraTuThe(keypoints) {
   const vaiTrai = keypoints[5];
@@ -247,3 +248,4 @@ function goc(a, b, c) {
   return Math.acos(cosang) * (180 / Math.PI);
 }
 console.log('Script đã tải xong.');
+
