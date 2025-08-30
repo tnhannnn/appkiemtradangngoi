@@ -164,7 +164,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   }
 
   // Vòng lặp khung hình
-  const CHECK_INTERVAL = 3000; // Kiểm tra tư thế mỗi 3 giây
+  const CHECK_INTERVAL = 100; // Kiểm tra tư thế mỗi 3 giây
   let lastCheckTime = 0;
   async function loop(timestamp) {
   await updateKeypoints(timestamp);
@@ -187,81 +187,95 @@ document.addEventListener("DOMContentLoaded", async () => {
 
 console.log("đã chạy xong hoàn toàn file");
 // ====== Các hàm xử lý tư thế (để ngoài DOMContentLoaded cũng được) ======
+// Hàm kiểm tra tư thế
 async function KiemTraTuThe(keypoints) {
   const vaiTrai = keypoints[5];
   const vaiPhai = keypoints[6];
   const mui = keypoints[0];
   const taiTrai = keypoints[3];
   const taiPhai = keypoints[4];
-  const matTrai = keypoints[1];
-  const matPhai = keypoints[2];
 
   const doTinCay = 0.6;
   if (
-    !vaiTrai || !vaiPhai || !mui || !taiTrai || !taiPhai || !matTrai || !matPhai ||
+    !vaiTrai || !vaiPhai || !mui || !taiTrai || !taiPhai ||
     vaiTrai.score < doTinCay ||
     vaiPhai.score < doTinCay ||
     mui.score < doTinCay ||
     taiPhai.score < doTinCay ||
-    taiTrai.score < doTinCay ||
-    matPhai.score < doTinCay ||
-    matTrai.score < doTinCay
+    taiTrai.score < doTinCay
   ) {
-    // Không đủ tin cậy -> bỏ qua
-    return false;
+    return false; // keypoint ko tin cậy
   }
-;
-  const DO_LECH_CHO_PHEP = 15;
-  const TBgoc = (goc(taiPhai, matPhai, mui) + goc(taiTrai, matTrai, mui)) / 2;
-  const TBgocvai = (goc(vaiTrai, taiTrai, mui) + goc(vaiPhai, taiPhai, mui)) / 2;
+
   if (!TuTheDung) {
     console.log("⚠️ Chưa lưu tư thế chuẩn (baseline).");
-    CanhBao("⚠️ Chưa lưu tư thế chuẩn (baseline). Hãy ngồi thẳng lưng và nhấn nút 'Bắt đầu theo dõi / Lưu tư thế đúng' để lưu lại tư thế đúng.", "red");
+    CanhBao("⚠️ Chưa lưu tư thế chuẩn (baseline). Hãy ngồi thẳng lưng và nhấn nút 'Bắt đầu theo dõi'", "red");
     return false;
   }
-  const TBgocTuTheDungmat = (TuTheDung.gocTaimatPhaimui + TuTheDung.gocTaimatTraimui) / 2;
-  const TBgocTuTheDungvai = (TuTheDung.gocVaiTaiMuiTrai + TuTheDung.gocVaiTaiMuiPhai) / 2;
 
-  if (Math.abs(TBgoc - TBgocTuTheDungmat) > DO_LECH_CHO_PHEP) {
-    console.log("⚠️ Cổ đang bị gù ! Hãy ngồi thẳng lưng lên!");
-    CanhBao("⚠️ Cổ đang bị gù ! Hãy ngồi thẳng lưng lên!", "red");
+  // --- Chuẩn hóa theo chiều rộng vai ---
+  const shoulderWidth = khoangcach(vaiTrai, vaiPhai);
+  const TrungDiemVai = { x: (vaiTrai.x + vaiPhai.x) / 2, y: (vaiTrai.y + vaiPhai.y) / 2 };
+
+  // --- Khoảng cách ---
+  const dMuiTrungDiemVai = khoangcach(mui, TrungDiemVai) / shoulderWidth;
+  const dTaiVaiTrai = khoangcach(taiTrai, vaiTrai) / shoulderWidth;
+  const dTaiVaiPhai = khoangcach(taiPhai, vaiPhai) / shoulderWidth;
+
+  // --- Góc ---
+  const gocTrai = goc(vaiTrai, taiTrai, mui);
+  const gocPhai = goc(vaiPhai, taiPhai, mui);
+  const TB_goc = (gocTrai + gocPhai) / 2;
+
+  // --- So sánh với baseline ---
+  const NGUONG_DIST = 0.15; // cho phép lệch 15%
+  const NGUONG_GOC = 15;   // cho phép lệch 15 độ
+
+  let canhbao = "";
+
+  if (Math.abs(dMuiTrungDiemVai - TuTheDung.dMuiTrungDiemVai) > NGUONG_DIST) {
+    canhbao = "⚠️ Đầu cúi/gập khác nhiều so với tư thế chuẩn!";
+  } else if (Math.abs(dTaiVaiTrai - TuTheDung.dTaiVaiTrai) > NGUONG_DIST ||
+             Math.abs(dTaiVaiPhai - TuTheDung.dTaiVaiPhai) > NGUONG_DIST) {
+    canhbao = "⚠️ Tai lệch nhiều so với vai (có thể gù/lệch)!";
+  } else if (Math.abs(TB_goc - TuTheDung.TB_goc) > NGUONG_GOC) {
+    canhbao = "⚠️ Góc cổ thay đổi nhiều (có thể gù)!";
+  }
+
+  if (canhbao) {
+    console.log(canhbao);
+    CanhBao(canhbao, "red");
     return false;
   } else {
-  if (TBgocvai - TBgocTuTheDungvai > DO_LECH_CHO_PHEP) {
-      console.log("⚠️ Vai đang bị trùng về phía trước! Hãy ngồi thẳng lưng lên!");
-      CanhBao("⚠️ Vai đang bị trùng về phía trước! Hãy ngồi thẳng lưng lên!", "red");
-      return false;
-    }
-    else{
     console.log("✅ Tư thế đúng!");
-    return true;}
+    CanhBao("✅ Tư thế đúng!", "green");
+    return true;
   }
 }
-const statusDiv = document.getElementById("statusDiv");
-function CanhBao(msg, color="black") {
-  if (statusDiv) {
-    statusDiv.textContent = msg;
-    statusDiv.style.color = color;
-  }
-  console.log(msg); 
-}
+
+// Hàm lưu baseline
 async function LuuTuTheDung(keypoints) {
   const vaiTrai = keypoints[5];
   const vaiPhai = keypoints[6];
   const mui = keypoints[0];
   const taiTrai = keypoints[3];
   const taiPhai = keypoints[4];
-  const matTrai = keypoints[1];
-  const matPhai = keypoints[2];
 
-  const gocTaimatPhaimui = goc(taiPhai, matPhai, mui);
-  const gocTaimatTraimui = goc(taiTrai, matTrai, mui);
-  const gocVaiTaiMuiTrai = goc(vaiTrai, taiTrai, mui);
-  const gocVaiTaiMuiPhai = goc(vaiPhai, taiPhai, mui);
+  const shoulderWidth = khoangcach(vaiTrai, vaiPhai);
+  const TrungDiemVai = { x: (vaiTrai.x + vaiPhai.x) / 2, y: (vaiTrai.y + vaiPhai.y) / 2 };
 
-  TuTheDung = { gocTaimatTraimui, gocTaimatPhaimui, gocVaiTaiMuiTrai, gocVaiTaiMuiPhai };
+  const dMuiTrungDiemVai = khoangcach(mui, TrungDiemVai) / shoulderWidth;
+  const dTaiVaiTrai = khoangcach(taiTrai, vaiTrai) / shoulderWidth;
+  const dTaiVaiPhai = khoangcach(taiPhai, vaiPhai) / shoulderWidth;
+
+  const gocTrai = goc(vaiTrai, taiTrai, mui);
+  const gocPhai = goc(vaiPhai, taiPhai, mui);
+  const TB_goc = (gocTrai + gocPhai) / 2;
+
+  TuTheDung = { dMuiTrungDiemVai, dTaiVaiTrai, dTaiVaiPhai, TB_goc };
   console.log("✅ Tư thế chuẩn đã lưu:", TuTheDung);
 }
+const statusDiv = document.getElementById("statusDiv");
 
 function goc(a, b, c) {
   // vector BA = A - B; vector BC = C - B
@@ -277,5 +291,14 @@ function goc(a, b, c) {
   cosang = Math.max(-1, Math.min(1, cosang));
   return Math.acos(cosang) * (180 / Math.PI);
 }
+function khoangcach(a, b) {
+  return Math.sqrt((a.x - b.x) ** 2 + (a.y - b.y) ** 2);
+}
 console.log('Script đã tải xong.');
-
+function CanhBao(msg, color="black") {
+  if (statusDiv) {
+    statusDiv.textContent = msg;
+    statusDiv.style.color = color;
+  }
+  console.log(msg); 
+}
