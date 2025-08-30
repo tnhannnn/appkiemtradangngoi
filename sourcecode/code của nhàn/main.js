@@ -101,17 +101,23 @@ document.addEventListener("DOMContentLoaded", async () => {
   // gọi estimatePoses giới hạn 10 lần/giây
   let lastDetectTime = 0;
   async function updateKeypoints(timestamp) {
-    if (!detector || !video) return;
-    if (timestamp - lastDetectTime > 100) { // 100ms = 10fps
-      const detectedPoses = await detector.estimatePoses(video);
-      if (detectedPoses && detectedPoses.length > 0) {
-        currentKeypoints = detectedPoses[0].keypoints;
-      } else {
-        currentKeypoints = null;
-      }
-      lastDetectTime = timestamp;
-    }
+  if (!detector) {
+    console.warn("detector chưa khởi tạo");
+    return;
   }
+
+  const poses = await detector.estimatePoses(video);
+  //console.log("poses:", poses);   // check có gì không
+
+  if (poses.length > 0) {
+    currentKeypoints = poses[0].keypoints;
+    //console.log("keypoints ok:", currentKeypoints);
+  } else {
+    currentKeypoints = null;
+    //console.log("không thấy pose");
+  }
+}
+
 
   // Hàm vẽ keypoints + skeleton
   function drawKeypoints() {
@@ -158,12 +164,20 @@ document.addEventListener("DOMContentLoaded", async () => {
   }
 
   // Vòng lặp khung hình
+  const CHECK_INTERVAL = 3000; // Kiểm tra tư thế mỗi 3 giây
+  let lastCheckTime = 0;
   async function loop(timestamp) {
-    await updateKeypoints(timestamp);  // chỉ cập nhật dữ liệu (có throttling)
-    drawKeypoints();                   // vẽ mượt mỗi frame
-    // nếu muốn check tư thế realtime: if (currentKeypoints) KiemTraTuThe(currentKeypoints);
-    requestAnimationFrame(loop);
+  await updateKeypoints(timestamp);
+  drawKeypoints();
+ //console.log("loop frame", timestamp)
+  // Kiểm tra tư thế theo interval
+  if (TuTheDung && currentKeypoints && timestamp - lastCheckTime > CHECK_INTERVAL) {
+    KiemTraTuThe(currentKeypoints);
+    lastCheckTime = timestamp;
   }
+
+  requestAnimationFrame(loop);
+}
 
   window.addEventListener("resize", resizeCanvas);
 
@@ -196,27 +210,41 @@ async function KiemTraTuThe(keypoints) {
     // Không đủ tin cậy -> bỏ qua
     return false;
   }
-
-  const gocTaimatPhaimui = goc(taiPhai, matPhai, mui);
-  const gocTaimatTraimui = goc(taiTrai, matTrai, mui);
-
+;
   const DO_LECH_CHO_PHEP = 15;
-  const TBgoc = (gocTaimatPhaimui + gocTaimatTraimui) / 2; // ⬅️ FIX typo
+  const TBgoc = (goc(taiPhai, matPhai, mui) + goc(taiTrai, matTrai, mui)) / 2;
+  const TBgocvai = (goc(vaiTrai, taiTrai, mui) + goc(vaiPhai, taiPhai, mui)) / 2;
   if (!TuTheDung) {
     console.log("⚠️ Chưa lưu tư thế chuẩn (baseline).");
+    CanhBao("⚠️ Chưa lưu tư thế chuẩn (baseline). Hãy ngồi thẳng lưng và nhấn nút 'Bắt đầu theo dõi / Lưu tư thế đúng' để lưu lại tư thế đúng.", "red");
     return false;
   }
-  const TBgocTuTheDung = (TuTheDung.gocTaimatPhaimui + TuTheDung.gocTaimatTraimui) / 2;
+  const TBgocTuTheDungmat = (TuTheDung.gocTaimatPhaimui + TuTheDung.gocTaimatTraimui) / 2;
+  const TBgocTuTheDungvai = (TuTheDung.gocVaiTaiMuiTrai + TuTheDung.gocVaiTaiMuiPhai) / 2;
 
-  if (Math.abs(TBgoc - TBgocTuTheDung) > DO_LECH_CHO_PHEP) {
-    console.log("⚠️ Tư thế gù lưng! Hãy ngồi thẳng lưng lên!");
+  if (Math.abs(TBgoc - TBgocTuTheDungmat) > DO_LECH_CHO_PHEP) {
+    console.log("⚠️ Cổ đang bị gù ! Hãy ngồi thẳng lưng lên!");
+    CanhBao("⚠️ Cổ đang bị gù ! Hãy ngồi thẳng lưng lên!", "red");
     return false;
   } else {
+  if (TBgocvai - TBgocTuTheDungvai > DO_LECH_CHO_PHEP) {
+      console.log("⚠️ Vai đang bị trùng về phía trước! Hãy ngồi thẳng lưng lên!");
+      CanhBao("⚠️ Vai đang bị trùng về phía trước! Hãy ngồi thẳng lưng lên!", "red");
+      return false;
+    }
+    else{
     console.log("✅ Tư thế đúng!");
-    return true;
+    return true;}
   }
 }
-
+const statusDiv = document.getElementById("statusDiv");
+function CanhBao(msg, color="black") {
+  if (statusDiv) {
+    statusDiv.textContent = msg;
+    statusDiv.style.color = color;
+  }
+  console.log(msg); 
+}
 async function LuuTuTheDung(keypoints) {
   const vaiTrai = keypoints[5];
   const vaiPhai = keypoints[6];
@@ -228,8 +256,10 @@ async function LuuTuTheDung(keypoints) {
 
   const gocTaimatPhaimui = goc(taiPhai, matPhai, mui);
   const gocTaimatTraimui = goc(taiTrai, matTrai, mui);
+  const gocVaiTaiMuiTrai = goc(vaiTrai, taiTrai, mui);
+  const gocVaiTaiMuiPhai = goc(vaiPhai, taiPhai, mui);
 
-  TuTheDung = { gocTaimatTraimui, gocTaimatPhaimui };
+  TuTheDung = { gocTaimatTraimui, gocTaimatPhaimui, gocVaiTaiMuiTrai, gocVaiTaiMuiPhai };
   console.log("✅ Tư thế chuẩn đã lưu:", TuTheDung);
 }
 
