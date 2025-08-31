@@ -9,7 +9,7 @@ let canvaOn = false;          // canvas (keypoint) có đang hiện
 let isHuongDanOpen = false;   // màn hướng dẫn có đang mở
 let currentKeypoints = null;  // ⬅️ nguồn dữ liệu keypoints duy nhất
 let TuTheDung = null;         // baseline tư thế đúng
-
+let thangLung = true;
 // Sẽ được gán sau khi DOM sẵn sàng
 let video, canvas, ctx;
 
@@ -169,12 +169,13 @@ document.addEventListener("DOMContentLoaded", async () => {
   async function loop(timestamp) {
   await updateKeypoints(timestamp);
   drawKeypoints();
- //console.log("loop frame", timestamp)
-  // Kiểm tra tư thế theo interval
+
   if (TuTheDung && currentKeypoints && timestamp - lastCheckTime > CHECK_INTERVAL) {
     KiemTraTuThe(currentKeypoints);
     lastCheckTime = timestamp;
   }
+
+  phatAmThanh(); // <-- Thêm dòng này
 
   requestAnimationFrame(loop);
 }
@@ -185,7 +186,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   startCamera();
 });
 
-console.log("đã chạy xong hoàn toàn file");
+
 // ====== Các hàm xử lý tư thế (để ngoài DOMContentLoaded cũng được) ======
 // Hàm kiểm tra tư thế
 async function KiemTraTuThe(keypoints) {
@@ -235,11 +236,14 @@ async function KiemTraTuThe(keypoints) {
 
   if (Math.abs(dMuiTrungDiemVai - TuTheDung.dMuiTrungDiemVai) > NGUONG_DIST) {
     canhbao = "⚠️ Đầu cúi/gập khác nhiều so với tư thế chuẩn!";
+    thangLung=false;
   } else if (Math.abs(dTaiVaiTrai - TuTheDung.dTaiVaiTrai) > NGUONG_DIST ||
              Math.abs(dTaiVaiPhai - TuTheDung.dTaiVaiPhai) > NGUONG_DIST) {
     canhbao = "⚠️ Tai lệch nhiều so với vai (có thể gù/lệch)!";
+    thangLung=false;
   } else if (Math.abs(TB_goc - TuTheDung.TB_goc) > NGUONG_GOC) {
     canhbao = "⚠️ Góc cổ thay đổi nhiều (có thể gù)!";
+    thangLung=false;
   }
 
   if (canhbao) {
@@ -249,6 +253,7 @@ async function KiemTraTuThe(keypoints) {
   } else {
     console.log("✅ Tư thế đúng!");
     CanhBao("✅ Tư thế đúng!", "green");
+    thangLung=true;
     return true;
   }
 }
@@ -301,4 +306,32 @@ function CanhBao(msg, color="black") {
     statusDiv.style.color = color;
   }
   console.log(msg); 
+}
+let thoiDiemSai = null;
+let isCanhBao = false;
+
+function phatAmThanh() {
+  const audio = document.getElementById("audio");
+  if (thangLung) {
+    thoiDiemSai = null;
+    if (isCanhBao) {
+      audio.pause();
+      audio.currentTime = 0;
+      isCanhBao = false;
+    }
+  } else {
+    if (!thoiDiemSai) thoiDiemSai = Date.now();
+    let thoiGianSai = Date.now() - thoiDiemSai;
+    if (thoiGianSai > 5000 && !isCanhBao) {//sai tư thế và đã cảnh báo 
+      audio.currentTime = 0;
+      audio.play().catch(err => console.log("ko phat duoc", err));
+      isCanhBao = true;
+    }
+    // Nếu đang cảnh báo mà vẫn sai tư thế, mỗi 5s lại phát lại
+    if (isCanhBao && thoiGianSai > 5000) {
+      audio.currentTime = 0;
+      audio.play().catch(err => console.log("ko phat duoc", err));
+      thoiDiemSai = Date.now(); // reset lại để 5s sau lại phát tiếp
+    }
+  }
 }
