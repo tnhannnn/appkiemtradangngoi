@@ -117,6 +117,47 @@ document.addEventListener("DOMContentLoaded", async () => {
     //console.log("không thấy pose");
   }
 }
+//===== Lọc nhiễu keypoints =====
+// Sử dụng trung bình trượt (moving average) để làm mượt keypoints
+let buffer = [];
+const MAX_BUFFER = 30; // tối đa 30 frames ~ 1 giây do máy 30 fps :Đ
+
+// Thêm keypoints mới vào buffer
+function addToBuffer(keypoints) {
+  buffer.push(keypoints);// thêm frame mới vào cuối
+
+  // Nếu buffer quá dài thì bỏ frame cũ nhất
+  if (buffer.length > MAX_BUFFER) {
+    buffer.shift();
+  }
+}
+
+// Tính trung bình tất cả keypoints trong buffer
+function getSmoothedKeypoints() {
+  if (buffer.length === 0) return null;
+
+  const frameCount = buffer.length;
+
+  // Giả sử mỗi frame có cùng số lượng keypoint
+  return buffer[0].map((_, index) => { // với mỗi keypoint
+    let totalX = 0;
+    let totalY = 0;
+    let totalScore = 0;
+
+    for (const frame of buffer) {
+      const kp = frame[index];
+      totalX += kp.x;
+      totalY += kp.y;
+      totalScore += kp.score;
+    }
+
+    return {
+      x: totalX / frameCount,
+      y: totalY / frameCount,
+      score: totalScore / frameCount
+    };
+  });
+}
 
 
   // Hàm vẽ keypoints + skeleton
@@ -164,14 +205,17 @@ document.addEventListener("DOMContentLoaded", async () => {
   }
 
   // Vòng lặp khung hình
-  const CHECK_INTERVAL = 100; // Kiểm tra tư thế mỗi 3 giây
+  const CHECK_INTERVAL = 100; 
   let lastCheckTime = 0;
   async function loop(timestamp) {
   await updateKeypoints(timestamp);
   drawKeypoints();
 
   if (TuTheDung && currentKeypoints && timestamp - lastCheckTime > CHECK_INTERVAL) {
-    KiemTraTuThe(currentKeypoints);
+    addToBuffer(currentKeypoints);
+    const smoothedKeypoints = getSmoothedKeypoints();
+    
+    KiemTraTuThe(smoothedKeypoints);
     lastCheckTime = timestamp;
   }
 
@@ -187,7 +231,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 });
 
 
-// ====== Các hàm xử lý tư thế (để ngoài DOMContentLoaded cũng được) ======
+// ====== Các hàm xử lý tư thế ======
 // Hàm kiểm tra tư thế
 async function KiemTraTuThe(keypoints) {
   const vaiTrai = keypoints[5];
@@ -229,7 +273,7 @@ async function KiemTraTuThe(keypoints) {
   const TB_goc = (gocTrai + gocPhai) / 2;
 
   // --- So sánh với baseline ---
-  const NGUONG_DIST = 0.15; // cho phép lệch 15%
+  const NGUONG_DIST = 0.1; // cho phép lệch 10%
   const NGUONG_GOC = 15;   // cho phép lệch 15 độ
 
   let canhbao = "";
@@ -307,6 +351,8 @@ function CanhBao(msg, color="black") {
   }
   console.log(msg); 
 }
+
+// ====== Phát âm thanh cảnh báo ======
 let thoiDiemSai = null;
 let isCanhBao = false;
 
