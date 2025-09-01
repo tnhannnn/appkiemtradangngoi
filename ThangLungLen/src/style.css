@@ -1,0 +1,95 @@
+* {
+  padding: 0px;
+  margin: 0px;
+}
+body {
+  position: relative;
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+  font-family: "Roboto", sans-serif;
+  background: linear-gradient(135deg, violet, pink, white);
+}
+#webcam {
+  position: absolute;
+  inset: 0;
+  object-fit: contain;
+  z-index: 0;
+  width: auto;
+  transform: translateX(-50%)scaleX(-1);
+  left:50%;
+  top:20px;
+  border-radius: 15px;
+  outline: 2px solid black;
+  height:calc(100vh - 20px - 20px)
+}
+#canvas {
+  display: none;
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  width: auto;
+  height:calc(100vh - 20px - 20px);
+  pointer-events: none;
+  transform: translateX(-50%)scaleX(-1);
+  left:50%;
+  top:20px;
+  
+}
+.button {
+  padding: 1.5em;
+  border-radius: 15em;
+  background-color: red;
+  color: white;
+  cursor: pointer;
+}
+.button:hover {
+  background-color: blue;
+  transition: ease-in-out 200ms;
+}
+.button-container {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  bottom: 0px;
+  z-index: 3;
+}
+.huongdan {
+  visibility: hidden;
+  border-radius: 1.5em;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 1em;
+  z-index: 2;
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  background-color: gray;
+  padding: 20px;
+}
+.huongdan img {
+  width: max(
+    100px,
+    30vw
+  ); /* ở màn điện thoại nó sẽ là 150px, ở máy tính thì sẽ là 30vw*/
+}
+#statusDiv {
+  font-size: 22px;
+  z-index: 999;
+  position: absolute;
+  top:0px;
+  left:50%;
+  transform: translateX(-50%);
+  background-color: white;
+  padding:0.5em; 
+  border-radius: 15px;
+  top:20px;
+}
+#statusDiv .bad-poisture{
+  background-color: red;
+  color:white;
+}
+

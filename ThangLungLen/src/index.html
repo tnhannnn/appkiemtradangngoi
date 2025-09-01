@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title></title>
+    <link href="style.css" rel="stylesheet" />
+    <script src="main.js" defer></script>
+    <script src="tf.min.js"></script>
+    <script src="pose-detection.min.js"></script>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Roboto&display=swap"
+      rel="stylesheet"
+    />
+    <!--gắn link font roboto của google vào để hiện tiếng việt cho rõ-->
+  </head>
+  <body>
+    <canvas id="canvas"></canvas>
+    <video id="webcam"></video>
+    <div id="statusDiv">Ngồi đúng tư thế và bấm bắt đầu theo dõi</div>
+    <div class="button-container">
+      <button class="button" id="nutbatdaucam" ></button>
+      <button class="button" id="keypoint-toggle"></button>
+      <button class="button" id="huongdan"></button>
+    </div>
+
+    <div class="huongdan" id="man-hinh-huong-dan">
+      <img src="assets/huongdan.jpg" alt="huongdan" />
+      <h2>Ngồi thẳng lưng lên, nhìn vào camera và bấm bắt đầu theo dõi</h2>
+    </div>
+    <audio id="audio" src="assets/sound.mp3"></audio>
+  </body>
+</html>

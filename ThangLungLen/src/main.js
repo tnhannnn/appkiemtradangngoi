@@ -1,0 +1,383 @@
+console.log("Kết nối JavaScript thành công");
+
+tf.setBackend("webgl");
+
+// ===== Biến toàn cục =====
+let stream = null;
+let detector = null;
+let canvaOn = false;          // canvas (keypoint) có đang hiện
+let isHuongDanOpen = false;   // màn hướng dẫn có đang mở
+let currentKeypoints = null;  // ⬅️ nguồn dữ liệu keypoints duy nhất
+let TuTheDung = null;         // baseline tư thế đúng
+let thangLung = true;
+// Sẽ được gán sau khi DOM sẵn sàng
+let video, canvas, ctx;
+
+document.addEventListener("DOMContentLoaded", async () => {
+  const btn = document.getElementById("nutbatdaucam");
+  const keypointToggle = document.getElementById("keypoint-toggle");
+  const huongdan = document.getElementById("huongdan");
+  const manHinhHuongDan = document.getElementById("man-hinh-huong-dan");
+
+  video = document.getElementById("webcam");
+  canvas = document.getElementById("canvas");
+  ctx = canvas.getContext("2d");
+
+  // đặt nội dung nút
+  btn.textContent = "Bắt đầu theo dõi / Lưu tư thế đúng";
+  keypointToggle.textContent = "Hiện keypoint";
+  huongdan.textContent = "Hiện hướng dẫn";
+
+  // Ẩn/hiện canvas keypoints
+  keypointToggle.onclick = () => {
+    if (canvaOn) {
+      canvas.style.display = "none";
+      canvaOn = false;
+      keypointToggle.textContent = "Hiện keypoint";
+    } else {
+      canvas.style.display = "block";
+      canvaOn = true;
+      keypointToggle.textContent = "Ẩn keypoint";
+    }
+  };
+
+  // Ẩn/hiện hướng dẫn
+  huongdan.onclick = () => {
+    if (!isHuongDanOpen) {
+      manHinhHuongDan.style.visibility = "visible";
+      huongdan.textContent = "Ẩn hướng dẫn";
+      isHuongDanOpen = true;
+    } else {
+      manHinhHuongDan.style.visibility = "hidden";
+      huongdan.textContent = "Hiện hướng dẫn";
+      isHuongDanOpen = false;
+    }
+  };
+
+  // Nút chính: lưu baseline tư thế đúng khi đã có keypoints
+  btn.onclick = () => {
+    if (currentKeypoints && currentKeypoints.length) {
+      LuuTuTheDung(currentKeypoints);
+      console.log("Đã lưu tư thế đúng");
+    } else {
+      console.log("❌ Chưa có dữ liệu keypoints từ camera");
+    }
+  };
+
+  function resizeCanvas() {
+    if (video && canvas) {
+      canvas.width = video.videoWidth || window.innerWidth;
+      canvas.height = video.videoHeight || window.innerHeight;
+    }
+  }
+
+  // Khởi tạo pose detector
+  async function initDetector() {
+    detector = await poseDetection.createDetector(
+      poseDetection.SupportedModels.MoveNet,
+      {
+        modelType: poseDetection.movenet.modelType.SINGLEPOSE_LIGHTNING,
+        modelUrl: "./assets/models/model.json" // giữ nguyên theo setup của bạn
+      }
+    );
+  }
+
+  async function startCamera() {
+    try {
+      stream = await navigator.mediaDevices.getUserMedia({ video: true });
+      video.srcObject = stream;
+      await video.play();
+      resizeCanvas();
+
+      if (!detector) await initDetector();
+
+      requestAnimationFrame(loop);
+    } catch (err) {
+      console.error("Không thể truy cập camera:", err);
+    }
+  }
+
+
+  // gọi estimatePoses giới hạn 10 lần/giây
+  let lastDetectTime = 0;
+  async function updateKeypoints(timestamp) {
+  if (!detector) {
+    console.warn("detector chưa khởi tạo");
+    return;
+  }
+
+  const poses = await detector.estimatePoses(video);
+  //console.log("poses:", poses);   // check có gì không
+
+  if (poses.length > 0) {
+    currentKeypoints = poses[0].keypoints;
+    //console.log("keypoints ok:", currentKeypoints);
+  } else {
+    currentKeypoints = null;
+    //console.log("không thấy pose");
+  }
+}
+//===== Lọc nhiễu keypoints =====
+// Sử dụng trung bình trượt (moving average) để làm mượt keypoints
+let buffer = [];
+const MAX_BUFFER = 30; // tối đa 30 frames ~ 1 giây do máy 30 fps :Đ
+
+// Thêm keypoints mới vào buffer
+function addToBuffer(keypoints) {
+  buffer.push(keypoints);// thêm frame mới vào cuối
+
+  // Nếu buffer quá dài thì bỏ frame cũ nhất
+  if (buffer.length > MAX_BUFFER) {
+    buffer.shift();
+  }
+}
+
+// Tính trung bình tất cả keypoints trong buffer
+function getSmoothedKeypoints() {
+  if (buffer.length === 0) return null;
+
+  const frameCount = buffer.length;
+
+  // Giả sử mỗi frame có cùng số lượng keypoint
+  return buffer[0].map((_, index) => { // với mỗi keypoint
+    let totalX = 0;
+    let totalY = 0;
+    let totalScore = 0;
+
+    for (const frame of buffer) {
+      const kp = frame[index];
+      totalX += kp.x;
+      totalY += kp.y;
+      totalScore += kp.score;
+    }
+
+    return {
+      x: totalX / frameCount,
+      y: totalY / frameCount,
+      score: totalScore / frameCount
+    };
+  });
+}
+
+
+  // Hàm vẽ keypoints + skeleton
+  function drawKeypoints() {
+    if (!ctx || !canvas) return;
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    if (!currentKeypoints || !canvaOn) return;
+
+    // vẽ keypoints
+    for (const keypoint of currentKeypoints) {
+      if (keypoint && keypoint.score > 0.5) {
+        ctx.fillStyle = "red";
+        ctx.beginPath();
+        ctx.arc(keypoint.x, keypoint.y, 5, 0, 2 * Math.PI);
+        ctx.fill();
+
+        // in tên keypoint (lật chữ theo chiều video)
+        ctx.save();
+        ctx.translate(keypoint.x, keypoint.y);
+        ctx.scale(-1, 1);
+        ctx.fillStyle = "white";
+        ctx.font = "10px Arial";
+        ctx.fillText(keypoint.name || "", -15, 5);
+        ctx.restore();
+      }
+    }
+
+    // vẽ skeleton
+    const adjacentPairs = poseDetection.util.getAdjacentPairs(
+      poseDetection.SupportedModels.MoveNet
+    );
+    ctx.strokeStyle = "lime";
+    ctx.lineWidth = 2;
+    for (const [i, j] of adjacentPairs) {
+      const kp1 = currentKeypoints[i];
+      const kp2 = currentKeypoints[j];
+      if (kp1 && kp2 && kp1.score > 0.5 && kp2.score > 0.5) {
+        ctx.beginPath();
+        ctx.moveTo(kp1.x, kp1.y);
+        ctx.lineTo(kp2.x, kp2.y);
+        ctx.stroke();
+      }
+    }
+  }
+
+  // Vòng lặp khung hình
+  const CHECK_INTERVAL = 100; 
+  let lastCheckTime = 0;
+  async function loop(timestamp) {
+  await updateKeypoints(timestamp);
+  drawKeypoints();
+
+  if (TuTheDung && currentKeypoints && timestamp - lastCheckTime > CHECK_INTERVAL) {
+    addToBuffer(currentKeypoints);
+    const smoothedKeypoints = getSmoothedKeypoints();
+    
+    KiemTraTuThe(smoothedKeypoints);
+    lastCheckTime = timestamp;
+  }
+
+  phatAmThanh(); // <-- Thêm dòng này
+
+  requestAnimationFrame(loop);
+}
+
+  window.addEventListener("resize", resizeCanvas);
+
+  // Tự bật cam
+  startCamera();
+});
+
+
+// ====== Các hàm xử lý tư thế ======
+// Hàm kiểm tra tư thế
+async function KiemTraTuThe(keypoints) {
+  const vaiTrai = keypoints[5];
+  const vaiPhai = keypoints[6];
+  const mui = keypoints[0];
+  const taiTrai = keypoints[3];
+  const taiPhai = keypoints[4];
+
+  const doTinCay = 0.6;
+  if (
+    !vaiTrai || !vaiPhai || !mui || !taiTrai || !taiPhai ||
+    vaiTrai.score < doTinCay ||
+    vaiPhai.score < doTinCay ||
+    mui.score < doTinCay ||
+    taiPhai.score < doTinCay ||
+    taiTrai.score < doTinCay
+  ) {
+    return false; // keypoint ko tin cậy
+  }
+
+  if (!TuTheDung) {
+    console.log("⚠️ Chưa lưu tư thế chuẩn (baseline).");
+    CanhBao("⚠️ Chưa lưu tư thế chuẩn (baseline). Hãy ngồi thẳng lưng và nhấn nút 'Bắt đầu theo dõi'", "red");
+    return false;
+  }
+
+  // --- Chuẩn hóa theo chiều rộng vai ---
+  const shoulderWidth = khoangcach(vaiTrai, vaiPhai);
+  const TrungDiemVai = { x: (vaiTrai.x + vaiPhai.x) / 2, y: (vaiTrai.y + vaiPhai.y) / 2 };
+
+  // --- Khoảng cách ---
+  const dMuiTrungDiemVai = khoangcach(mui, TrungDiemVai) / shoulderWidth;
+  const dTaiVaiTrai = khoangcach(taiTrai, vaiTrai) / shoulderWidth;
+  const dTaiVaiPhai = khoangcach(taiPhai, vaiPhai) / shoulderWidth;
+
+  // --- Góc ---
+  const gocTrai = goc(vaiTrai, taiTrai, mui);
+  const gocPhai = goc(vaiPhai, taiPhai, mui);
+  const TB_goc = (gocTrai + gocPhai) / 2;
+
+  // --- So sánh với baseline ---
+  const NGUONG_DIST = 0.1; // cho phép lệch 10%
+  const NGUONG_GOC = 15;   // cho phép lệch 15 độ
+
+  let canhbao = "";
+
+  if (Math.abs(dMuiTrungDiemVai - TuTheDung.dMuiTrungDiemVai) > NGUONG_DIST) {
+    canhbao = "⚠️ Đầu cúi/gập khác nhiều so với tư thế chuẩn!";
+    thangLung=false;
+  } else if (Math.abs(dTaiVaiTrai - TuTheDung.dTaiVaiTrai) > NGUONG_DIST ||
+             Math.abs(dTaiVaiPhai - TuTheDung.dTaiVaiPhai) > NGUONG_DIST) {
+    canhbao = "⚠️ Tai lệch nhiều so với vai (có thể gù/lệch)!";
+    thangLung=false;
+  } else if (Math.abs(TB_goc - TuTheDung.TB_goc) > NGUONG_GOC) {
+    canhbao = "⚠️ Góc cổ thay đổi nhiều (có thể gù)!";
+    thangLung=false;
+  }
+
+  if (canhbao) {
+    console.log(canhbao);
+    CanhBao(canhbao, "red");
+    return false;
+  } else {
+    console.log("✅ Tư thế đúng!");
+    CanhBao("✅ Tư thế đúng!", "green");
+    thangLung=true;
+    return true;
+  }
+}
+
+// Hàm lưu baseline
+async function LuuTuTheDung(keypoints) {
+  const vaiTrai = keypoints[5];
+  const vaiPhai = keypoints[6];
+  const mui = keypoints[0];
+  const taiTrai = keypoints[3];
+  const taiPhai = keypoints[4];
+
+  const shoulderWidth = khoangcach(vaiTrai, vaiPhai);
+  const TrungDiemVai = { x: (vaiTrai.x + vaiPhai.x) / 2, y: (vaiTrai.y + vaiPhai.y) / 2 };
+
+  const dMuiTrungDiemVai = khoangcach(mui, TrungDiemVai) / shoulderWidth;
+  const dTaiVaiTrai = khoangcach(taiTrai, vaiTrai) / shoulderWidth;
+  const dTaiVaiPhai = khoangcach(taiPhai, vaiPhai) / shoulderWidth;
+
+  const gocTrai = goc(vaiTrai, taiTrai, mui);
+  const gocPhai = goc(vaiPhai, taiPhai, mui);
+  const TB_goc = (gocTrai + gocPhai) / 2;
+
+  TuTheDung = { dMuiTrungDiemVai, dTaiVaiTrai, dTaiVaiPhai, TB_goc };
+  console.log("✅ Tư thế chuẩn đã lưu:", TuTheDung);
+}
+const statusDiv = document.getElementById("statusDiv");
+
+function goc(a, b, c) {
+  // vector BA = A - B; vector BC = C - B
+  const vectorBA = { x: a.x - b.x, y: a.y - b.y };
+  const vectorBC = { x: c.x - b.x, y: c.y - b.y };
+
+  const dodaiBA = Math.hypot(vectorBA.x, vectorBA.y);
+  const dodaiBC = Math.hypot(vectorBC.x, vectorBC.y);
+  if (dodaiBA === 0 || dodaiBC === 0) return 0;
+
+  // Chặn sai số float để acos không ném ngoại lệ
+  let cosang = (vectorBA.x * vectorBC.x + vectorBA.y * vectorBC.y) / (dodaiBA * dodaiBC);
+  cosang = Math.max(-1, Math.min(1, cosang));
+  return Math.acos(cosang) * (180 / Math.PI);
+}
+function khoangcach(a, b) {
+  return Math.sqrt((a.x - b.x) ** 2 + (a.y - b.y) ** 2);
+}
+console.log('Script đã tải xong.');
+function CanhBao(msg, color="black") {
+  if (statusDiv) {
+    statusDiv.textContent = msg;
+    statusDiv.style.color = color;
+  }
+  console.log(msg); 
+}
+
+// ====== Phát âm thanh cảnh báo ======
+let thoiDiemSai = null;
+let isCanhBao = false;
+
+function phatAmThanh() {
+  const audio = document.getElementById("audio");
+  if (thangLung) {
+    thoiDiemSai = null;
+    if (isCanhBao) {
+      audio.pause();
+      audio.currentTime = 0;
+      isCanhBao = false;
+    }
+  } else {
+    if (!thoiDiemSai) thoiDiemSai = Date.now();
+    let thoiGianSai = Date.now() - thoiDiemSai;
+    if (thoiGianSai > 5000 && !isCanhBao) {//sai tư thế và đã cảnh báo 
+      audio.currentTime = 0;
+      audio.play().catch(err => console.log("ko phat duoc", err));
+      isCanhBao = true;
+    }
+    // Nếu đang cảnh báo mà vẫn sai tư thế, mỗi 5s lại phát lại
+    if (isCanhBao && thoiGianSai > 5000) {
+      audio.currentTime = 0;
+      audio.play().catch(err => console.log("ko phat duoc", err));
+      thoiDiemSai = Date.now(); // reset lại để 5s sau lại phát tiếp
+    }
+  }
+}
