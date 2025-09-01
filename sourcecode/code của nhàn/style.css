@@ -72,7 +72,7 @@ body {
 }
 .huongdan img {
   width: max(
-    150px,
+    100px,
     30vw
   ); /* ở màn điện thoại nó sẽ là 150px, ở máy tính thì sẽ là 30vw*/
 }
