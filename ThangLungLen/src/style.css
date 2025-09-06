@@ -67,15 +67,22 @@ body {
   left: 50%;
   top: 50%;
   transform: translate(-50%, -50%);
-  background-color: gray;
+  background: linear-gradient(135deg, #e0f7fa, #f1f8e9);
+  box-shadow: 0 6px 20px rgba(0,0,0,0.3);
   padding: 20px;
+  max-width: 90%;
 }
+
 .huongdan img {
-  width: max(
-    100px,
-    30vw
-  ); /* ở màn điện thoại nó sẽ là 150px, ở máy tính thì sẽ là 30vw*/
+  width: max(100px, 30vw);
+  border-radius: 12px;
 }
+
+.huongdan h2, .huongdan p {
+  color: #222;
+  text-align: center;
+}
+
 #statusDiv {
   font-size: 22px;
   z-index: 999;

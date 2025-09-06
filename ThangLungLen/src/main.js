@@ -103,6 +103,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   async function updateKeypoints(timestamp) {
   if (!detector) {
     console.warn("detector chưa khởi tạo");
+    CanhBao("❌ detector chưa khởi tạo", "red");
     return;
   }
 
@@ -240,7 +241,7 @@ async function KiemTraTuThe(keypoints) {
   const taiTrai = keypoints[3];
   const taiPhai = keypoints[4];
 
-  const doTinCay = 0.6;
+  const doTinCay = 0.3;
   if (
     !vaiTrai || !vaiPhai || !mui || !taiTrai || !taiPhai ||
     vaiTrai.score < doTinCay ||
@@ -249,6 +250,7 @@ async function KiemTraTuThe(keypoints) {
     taiPhai.score < doTinCay ||
     taiTrai.score < doTinCay
   ) {
+    CanhBao("⚠️ Có vẻ bạn đã ra khỏi khung hình hoặc keypoint không rõ!", "red");
     return false; // keypoint ko tin cậy
   }
 
@@ -271,7 +273,9 @@ async function KiemTraTuThe(keypoints) {
   const gocTrai = goc(vaiTrai, taiTrai, mui);
   const gocPhai = goc(vaiPhai, taiPhai, mui);
   const TB_goc = (gocTrai + gocPhai) / 2;
-
+  const gocTaiMatMuiTrai = goc(taiTrai, mui, vaiTrai);
+  const gocTaiMatMuiPhai = goc(taiPhai, mui, vaiPhai);
+  const TB_gocTaiMatMui = (gocTaiMatMuiTrai + gocTaiMatMuiPhai) / 2;
   // --- So sánh với baseline ---
   const NGUONG_DIST = 0.1; // cho phép lệch 10%
   const NGUONG_GOC = 15;   // cho phép lệch 15 độ
@@ -285,7 +289,7 @@ async function KiemTraTuThe(keypoints) {
              Math.abs(dTaiVaiPhai - TuTheDung.dTaiVaiPhai) > NGUONG_DIST) {
     canhbao = "⚠️ Tai lệch nhiều so với vai (có thể gù/lệch)!";
     thangLung=false;
-  } else if (Math.abs(TB_goc - TuTheDung.TB_goc) > NGUONG_GOC) {
+  } else if (Math.abs(TB_goc - TuTheDung.TB_goc) > NGUONG_GOC || Math.abs(TB_gocTaiMatMui - TuTheDung.TB_gocTaiMatMui) > NGUONG_GOC) {
     canhbao = "⚠️ Góc cổ thay đổi nhiều (có thể gù)!";
     thangLung=false;
   }
@@ -320,8 +324,10 @@ async function LuuTuTheDung(keypoints) {
   const gocTrai = goc(vaiTrai, taiTrai, mui);
   const gocPhai = goc(vaiPhai, taiPhai, mui);
   const TB_goc = (gocTrai + gocPhai) / 2;
-
-  TuTheDung = { dMuiTrungDiemVai, dTaiVaiTrai, dTaiVaiPhai, TB_goc };
+  const gocTaiMatMuiTrai = goc(taiTrai, mui, vaiTrai);
+  const gocTaiMatMuiPhai = goc(taiPhai, mui, vaiPhai);
+  const TB_gocTaiMatMui = (gocTaiMatMuiTrai + gocTaiMatMuiPhai) / 2;
+  TuTheDung = { dMuiTrungDiemVai, dTaiVaiTrai, dTaiVaiPhai, TB_goc, TB_gocTaiMatMui };
   console.log("✅ Tư thế chuẩn đã lưu:", TuTheDung);
 }
 const statusDiv = document.getElementById("statusDiv");
