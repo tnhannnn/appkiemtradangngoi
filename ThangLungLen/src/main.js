@@ -132,67 +132,66 @@ document.addEventListener("DOMContentLoaded", async () => {
       return;
     }
 
-    const poses = await detector.estimatePoses(video);
-    //console.log("poses:", poses);   // check có gì không
+  const poses = await detector.estimatePoses(video);
+  //console.log("poses:", poses);   // check có gì không
 
-    if (poses.length > 0) {
-      currentKeypoints = poses[0].keypoints;
-      //console.log("keypoints ok:", currentKeypoints);
-    } else {
-      currentKeypoints = null;
-      //console.log("không thấy pose");
+  if (poses.length > 0) {
+    currentKeypoints = poses[0].keypoints;
+    //console.log("keypoints ok:", currentKeypoints);
+  } else {
+    currentKeypoints = null;
+    //console.log("không thấy pose");
+  }
+}
+//===== Lọc nhiễu keypoints =====
+// Sử dụng trung bình trượt (moving average) để làm mượt keypoints
+let buffer = [];
+const MAX_BUFFER = 30; // tối đa 30 frames ~ 1 giây do máy 30 fps :Đ
+
+// Thêm keypoints mới vào buffer
+function addToBuffer(keypoints) {
+  buffer.push(keypoints);// thêm frame mới vào cuối
+
+  // Nếu buffer quá dài thì bỏ frame cũ nhất
+  if (buffer.length > MAX_BUFFER) {
+    buffer.shift();
+  }
+}
+
+// Tính trung bình tất cả keypoints trong buffer
+function lamMuotKeypoints() {
+  if (buffer.length === 0) return null;
+
+  const frameCount = buffer.length;
+
+  // Giả sử mỗi frame có cùng số lượng keypoint
+  return buffer[0].map((_, index) => { // với mỗi keypoint
+    let totalX = 0;
+    let totalY = 0;
+    let totalScore = 0;
+
+    for (const frame of buffer) {
+      const kp = frame[index];
+      totalX += kp.x;
+      totalY += kp.y;
+      totalScore += kp.score;
     }
-  }
-  //===== Lọc nhiễu keypoints =====
-  // Sử dụng trung bình trượt (moving average) để làm mượt keypoints
-  let buffer = [];
-  const MAX_BUFFER = 30; // tối đa 30 frames ~ 1 giây do máy 30 fps :Đ
 
-  // Thêm keypoints mới vào buffer
-  function addToBuffer(keypoints) {
-    buffer.push(keypoints); // thêm frame mới vào cuối
+    return {// gía trị trung bình 
+      x: totalX / frameCount,
+      y: totalY / frameCount,
+      score: totalScore / frameCount
+    };
+  });
+}
 
-    // Nếu buffer quá dài thì bỏ frame cũ nhất
-    if (buffer.length > MAX_BUFFER) {
-      buffer.shift();
-    }
-  }
-
-  // Tính trung bình tất cả keypoints trong buffer
-  function lamMuotKeypoints() {
-    if (buffer.length === 0) return null;
-
-    const frameCount = buffer.length;
-
-    // Giả sử mỗi frame có cùng số lượng keypoint
-    return buffer[0].map((_, index) => {
-      // với mỗi keypoint
-      let totalX = 0;
-      let totalY = 0;
-      let totalScore = 0;
-
-      for (const frame of buffer) {
-        const kp = frame[index];
-        totalX += kp.x;
-        totalY += kp.y;
-        totalScore += kp.score;
-      }
-
-      return {
-        // gía trị trung bình
-        x: totalX / frameCount,
-        y: totalY / frameCount,
-        score: totalScore / frameCount,
-      };
-    });
-  }
 
   // Hàm vẽ keypoints + skeleton
   function veKeypoints() {
-    if (!ctx || !canvas) return; // ctx (bút vẽ ) và canva ko tồn tại -> ngừng ngay
-    ctx.clearRect(0, 0, canvas.width, canvas.height); // clear toạ độ
+    if (!ctx || !canvas) return; // ctx (bút vẽ ) và canva ko tồn tại -> ngừng ngay 
+    ctx.clearRect(0, 0, canvas.width, canvas.height);// clear toạ độ 
 
-    if (!currentKeypoints || !isCanvaOn) return; // chưa có dữ liệu keypoints và canva ko bật -> ngừng ngay
+    if (!currentKeypoints || !isCanvaOn) return;// chưa có dữ liệu keypoints và canva ko bật -> ngừng ngay
 
     // vẽ keypoints
     for (const keypoint of currentKeypoints) {
@@ -201,7 +200,6 @@ document.addEventListener("DOMContentLoaded", async () => {
         ctx.beginPath();
         ctx.arc(keypoint.x, keypoint.y, 5, 0, 2 * Math.PI);
         ctx.fill();
-
         // in tên keypoint (lật chữ theo chiều video)
         ctx.save();
         ctx.translate(keypoint.x, keypoint.y);
@@ -212,7 +210,6 @@ document.addEventListener("DOMContentLoaded", async () => {
         ctx.restore();
       }
     }
-
     // vẽ skeleton
     const adjacentPairs = poseDetection.util.getAdjacentPairs(
       poseDetection.SupportedModels.MoveNet
@@ -230,7 +227,6 @@ document.addEventListener("DOMContentLoaded", async () => {
       }
     }
   }
-
   // Vòng lặp khung hình
   const doTreKiemTra = 100;
   let thoiDiemKiemTraGanNhat = 0;
