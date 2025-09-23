@@ -136,3 +136,130 @@ dialog button#close-lichsugu {
   color: white;
   cursor: pointer;
 }
+#btn-xoa-lichsu {
+  display: block;
+  margin: 10px auto;
+  padding: 6px 14px;
+  background: red;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.3s;
+}
+
+#btn-xoa-lichsu:hover {
+  background: darkred;
+}
+
+#list-lichsu {
+  max-height: 200px;
+  overflow: auto;
+  padding-left: 1.2em;
+  margin-top: 10px;
+  font-size: 14px;
+}
+#lich-su-gu {
+  width: 350px;
+  max-width: 90%;
+  padding: 15px 20px;
+  border-radius: 10px;
+  border: 1px solid #ccc;
+  opacity: 0;
+  transform: translateX(-100%);   /* ban đầu ở bên trái */
+  transition: transform 0.4s ease, opacity 0.4s ease;
+}
+
+#lich-su-gu.hien {
+  opacity: 1;
+  transform: translateX(0);       /* trượt vào giữa */
+}
+
+#lich-su-gu.dong {
+  opacity: 0;
+  transform: translateX(100%);    /* trượt ra bên phải */
+}
+
+#lich-su-gu::backdrop {
+  background: rgba(0, 0, 0, 0.4);
+  transition: background 0.4s ease;
+}
+#lich-su-gu {
+  width: 300px; /* cho bé lại */
+  padding: 15px;
+  border-radius: 12px;
+  border: none;
+  box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+  animation: slideInRight 0.4s ease;
+}
+
+.feedback-box {
+  margin-top: 10px;
+  padding: 10px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1.4;
+  display: none;
+}
+
+.feedback-warning {
+  background: #ffe5e5;
+  color: #cc0000;
+  border-left: 5px solid #cc0000;
+}
+
+.feedback-good {
+  background: #e6ffe6;
+  color: #006600;
+  border-left: 5px solid #006600;
+}
+
+@keyframes slideInRight {
+  from { transform: translateX(100%); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
+}
+/* Popup mặc định ẩn */
+#popup-ngoi-lau {
+  display: none; 
+  position: fixed;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  background: rgba(0,0,0,0.4);
+  z-index: 9999;
+}
+
+/* Khung nội dung popup */
+#popup-ngoi-lau .popup-content {
+  position: absolute;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  background: white;
+  padding: 20px;
+  border-radius: 10px;
+  width: 300px;
+  text-align: center;
+  box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+  animation: slideDown 0.4s ease;
+}
+
+#popup-ngoi-lau button {
+  margin-top: 15px;
+  padding: 8px 12px;
+  border: none;
+  border-radius: 6px;
+  background: #007bff;
+  color: white;
+  cursor: pointer;
+  transition: background 0.3s;
+}
+
+#popup-ngoi-lau button:hover {
+  background: #0056b3;
+}
+
+/* Hiệu ứng trượt xuống */
+@keyframes slideDown {
+  from { transform: translate(-50%, -60%); opacity: 0; }
+  to { transform: translate(-50%, -50%); opacity: 1; }
+}

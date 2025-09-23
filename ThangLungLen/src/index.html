@@ -16,7 +16,14 @@
   </head>
   <body>
     <button id="keypoint-toggle"></button>
-    <dialog id="lich-su-gu"><button id = "close-lichsugu">X</button><div id = "thongkegu">Lorem ipsum dolor sit amet consectetur adipisicing elit. Minima quaerat explicabo rerum in tempore qui aspernatur dolorum maxime reprehenderit quia saepe, itaque quo consequuntur esse quisquam sunt. Ad, a at.</div></dialog>
+    <dialog id="lich-su-gu">
+  <button id="close-lichsugu">X</button>
+  <div id="thongkegu">Lịch sử gù sẽ hiển thị ở đây...</div>
+
+  <!-- Thêm feedback ngay dưới thống kê -->
+  <div id="feedback" class="feedback-box"></div>
+</dialog>
+
     <canvas id="canvas"></canvas>
     <video id="webcam"></video>
     <div id="statusDiv">Ngồi đúng tư thế và bấm bắt đầu theo dõi</div>
@@ -46,9 +53,17 @@
       - Lưng hơi tựa vào ghế, không ngả quá nhiều.<br>
       - Giữ nguyên tư thế, không di chuyển.<br>
       - Nhấn nút <b>“Bắt đầu theo dõi”</b> để lưu lại tư thế chuẩn.
+      <p style="color: red;">(Lưu ý: Sau khi bấm dừng theo dõi cần ngồi đúng tư thế chuẩn rồi bấm lại để tiếp tục theo dõi)<p>
     </p>
   </div>
 </div>
     <audio id="audio" src="assets/sound.mp3"></audio>
   </body>
 </html>
+<!-- Popup nhắc ngồi lâu -->
+<div id="popup-ngoi-lau" class="popup">
+  <div class="popup-content">
+    <p>⏰ Bạn đã ngồi học hơn 1 tiếng rồi. Hãy đứng dậy, đi lại và vươn vai nhé!</p>
+    <button id="dong-popup">Đã hiểu</button>
+  </div>
+</div>

@@ -11,6 +11,7 @@ let isHuongDanOpen = false; // màn hướng dẫn có đang mở
 let currentKeypoints = null; // nguồn dữ liệu keypoints duy nhất
 let TuTheDung = null; // baseline tư thế đúng
 let isThangLung = true; // có đang thẳng lưng hay không
+let isBatDau = false
 // Sẽ được gán sau khi DOM sẵn sàng
 let video, canvas, ctx;
 const matHien =
@@ -82,11 +83,23 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   // Nút chính: lưu baseline tư thế đúng khi đã có keypoints
   btn.onclick = () => {
-    if (currentKeypoints && currentKeypoints.length) {
+    if (currentKeypoints && currentKeypoints.length && !isBatDau) {
       LuuTuTheDung(currentKeypoints);
-      console.log("Đã lưu tư thế đúng");
+      //console.log("Đã lưu tư thế đúng");
+      CanhBao("✅ Đã lưu tư thế đúng! Bắt đầu theo dõi...", "green");
+      btn.textContent = "Dừng theo dõi";
+      isBatDau = true;
     } else {
-      console.log("❌ Chưa có dữ liệu keypoints từ camera");
+      if (isBatDau) {
+        btn.textContent = "Bắt đầu theo dõi";
+        CanhBao("⚠️ Đã dừng theo dõi. Ngồi đúng tư thế và nhấn 'Bắt đầu theo dõi' để tiếp tục.", "orange");
+        isBatDau = false;
+        TuTheDung = null; 
+        isThangLung = true;// reset baseline
+      } else {
+        CanhBao("⚠️ Chưa có dữ liệu keypoints từ camera", "red");
+      }
+      //console.log("❌ Chưa có dữ liệu keypoints từ camera");
     }
   };
 
@@ -116,7 +129,6 @@ document.addEventListener("DOMContentLoaded", async () => {
       resizeCanvas();
 
       if (!detector) await khoiTaoDetector();
-
       requestAnimationFrame(loop);
     } catch (err) {
       alert("Không thể truy cập camera:", err);
@@ -228,33 +240,54 @@ function lamMuotKeypoints() {
     }
   }
   // Vòng lặp khung hình
-  const doTreKiemTra = 100;
-  let thoiDiemKiemTraGanNhat = 0;
-  async function loop(timestamp) {
-    await updateKeypoints(timestamp);
-    veKeypoints();
+  // Vòng lặp khung hình
+const doTreKiemTra = 100;
+let thoiDiemKiemTraGanNhat = 0;
+let animationId = null; // lưu id của requestAnimationFrame
+let isRunning = true;   // cờ để kiểm soát vòng lặp
 
-    if (
-      TuTheDung &&
-      currentKeypoints &&
-      timestamp - thoiDiemKiemTraGanNhat > doTreKiemTra
-    ) {
-      addToBuffer(currentKeypoints);
-      const smoothedKeypoints = lamMuotKeypoints();
+async function loop(timestamp) {
+  if (!isRunning) return; // nếu stop thì dừng hẳn
 
-      KiemTraTuThe(smoothedKeypoints);
-      thoiDiemKiemTraGanNhat = timestamp;
-    }
+  await updateKeypoints(timestamp);
+  veKeypoints();
 
-    phatAmThanh();
+  if (
+    TuTheDung &&
+    currentKeypoints &&
+    timestamp - thoiDiemKiemTraGanNhat > doTreKiemTra
+  ) {
+    addToBuffer(currentKeypoints);
+    const smoothedKeypoints = lamMuotKeypoints();
 
-    requestAnimationFrame(loop);
+    KiemTraTuThe(smoothedKeypoints);
+    thoiDiemKiemTraGanNhat = timestamp;
   }
 
-  window.addEventListener("resize", resizeCanvas);
+  phatAmThanh();
+   kiemTraNgoiLau();
+  animationId = requestAnimationFrame(loop);
+}
 
-  // Tự bật cam
-  startCamera();
+function startLoop() {
+  if (!isRunning) {
+    isRunning = true;
+    animationId = requestAnimationFrame(loop);
+  }
+}
+
+function stopLoop() {
+  isRunning = false;
+  if (animationId) {
+    cancelAnimationFrame(animationId);
+    animationId = null;
+  }
+}
+
+window.addEventListener("resize", resizeCanvas);
+
+// Tự bật cam
+startCamera();
 });
 
 // ====== Các hàm xử lý tư thế ======
@@ -287,7 +320,7 @@ async function KiemTraTuThe(keypoints) {
   }
 
   if (!TuTheDung) {
-    console.log("⚠️ Chưa lưu tư thế chuẩn (baseline).");
+    //console.log("⚠️ Chưa lưu tư thế chuẩn (baseline).");
     CanhBao(
       "⚠️ Chưa lưu tư thế chuẩn (baseline). Hãy ngồi thẳng lưng và nhấn nút 'Bắt đầu theo dõi'",
       "red"
@@ -380,7 +413,7 @@ async function LuuTuTheDung(keypoints) {
     TB_goc,
     TB_gocTaiMatMui,
   };
-  console.log("✅ Tư thế chuẩn đã lưu:", TuTheDung);
+  //console.log("✅ Tư thế chuẩn đã lưu:", TuTheDung);
 }
 const statusDiv = document.getElementById("statusDiv");
 
@@ -459,39 +492,47 @@ function hienThiLichSuGu() {
     return;
   }
   thongkegu.innerHTML = `
-    <b>Đã ghi nhận ${data.length} lần gù trong 7 ngày gần nhất....:</b>
-    <ul style="max-height:300px;overflow:auto;padding-left:1.2em;">
+    <b>Đã ghi nhận ${data.length} lần gù trong 7 ngày gần nhất:</b>
+    <button id="btn-xoa-lichsu" onclick="xoaLichSuGu()">Xoá lịch sử gù</button>
+    <ul id="list-lichsu">
       ${data
         .slice()
         .reverse()
-        .map((item, idx) => `<li>${new Date(item.time).toLocaleString()}</li>`)
+        .map((item) => `<li>${new Date(item.time).toLocaleString()}</li>`)
         .join("")}
     </ul>
   `;
 }
 
+
+
 // Gọi hienThiLichSuGu mỗi khi mở dialog lịch sử gù
 document.addEventListener("DOMContentLoaded", () => {
-  // ...existing code...
-  const lichSuGuBtn = document.getElementById("lichsugu");
-  const manHinhLichSuGu = document.getElementById("lich-su-gu");
-  // ...existing code...
-  lichSuGuBtn.onclick = () => {
-    if (!isLichSuGuOn) {
-      hienThiLichSuGu();
-      manHinhLichSuGu.showModal();
-      lichSuGuBtn.textContent = "Ẩn lịch sử gù";
-      isLichSuGuOn = true;
-    } else {
-      manHinhLichSuGu.close();
-      lichSuGuBtn.textContent = "Hiện lịch sử gù";
-      isLichSuGuOn = false;
-    }
-  };
-  // ...existing code...
-});
+const lichSuGuBtn = document.getElementById("lichsugu");
+const manHinhLichSuGu = document.getElementById("lich-su-gu");
+let isLichSuGuOn = false;
 
-// ...existing code...
+lichSuGuBtn.onclick = () => {
+  if (!isLichSuGuOn) {
+    hienThiLichSuGu();
+    manHinhLichSuGu.showModal();
+    requestAnimationFrame(() => {  // đợi 1 frame rồi mới add class
+      manHinhLichSuGu.classList.add("hien");
+    });
+    lichSuGuBtn.textContent = "Ẩn lịch sử gù";
+    isLichSuGuOn = true;
+    capNhatFeedback(); // cập nhật feedback mỗi khi mở lịch sử gù
+  } else {
+    manHinhLichSuGu.classList.remove("hien");
+    setTimeout(() => {
+      manHinhLichSuGu.close();
+    }, 400); // trùng với thời gian transition
+    lichSuGuBtn.textContent = "Hiện lịch sử gù";
+    isLichSuGuOn = false;
+  }
+};
+
+});
 
 // ====== Phát âm thanh cảnh báo & lưu lịch sử gù ======
 let thoiDiemSai = null;
@@ -515,7 +556,10 @@ function phatAmThanh() {
       audio.play().catch((err) => console.log("ko phat duoc", err));
       isCanhBao = true;
       themLanGu(); // <-- chỉ gọi ở đây
-      thoiDiemSai = Date.now(); // reset lại để 5s sau lại phát tiếp
+      thoiDiemSai = Date.now();
+       // reset lại để 5s sau lại phát tiếp
+           soLanGu++;
+    capNhatFeedback();
     }
     // Nếu đang cảnh báo mà vẫn sai tư thế, mỗi 5s lại phát lại âm thanh, nhưng không lưu thêm lần gù
     if (isCanhBao && thoiGianSai > 5000) {
@@ -526,4 +570,81 @@ function phatAmThanh() {
     }
   }
 }
+// Xoá toàn bộ lịch sử gù
+function xoaLichSuGu() {
+  localStorage.removeItem(LICH_SU_GU_KEY);
+  const thongkegu = document.getElementById("thongkegu");
+  if (thongkegu) {
+    thongkegu.innerHTML = "<i>Đã xoá toàn bộ lịch sử gù</i>";
+  }
+}
 console.log("Script đã tải xong.");
+//===== Feedback gợi ý khi mở lịch sử gù =====
+let soLanGu = 0; // Biến đếm số lần gù trong phiên hiện tại
+function capNhatFeedback() {
+  const feedbackEl = document.getElementById("feedback");
+  const data = getLichSuGu();
+  if (data.length === 0) {
+    feedbackEl.style.display = "none";
+    return;
+  }
+
+  feedbackEl.style.display = "block";
+
+  const now = Date.now();
+  const THOI_GIAN_CHECK = 30 * 60 * 1000; // 30 phút
+  const minTime = now - THOI_GIAN_CHECK;
+
+  // Đếm số lần gù trong 30 phút gần nhất
+  const guGanDay = data.filter(item => item.time >= minTime);
+  const soLanGuGanDay = guGanDay.length;
+
+  // Xác định thời gian ngồi học liên tục (từ lần đầu đến giờ)
+  const thoiGianNghe = Math.floor((now - data[0].time) / (1000 * 60)); // phút
+
+  let message = "";
+
+  if (soLanGuGanDay === 0) {
+    message = "👍 Bạn giữ tư thế rất tốt trong 30 phút gần đây!";
+    feedbackEl.className = "feedback-box feedback-good";
+  } else if (soLanGuGanDay < 5) {
+    message = `⚠️ Bạn đã gù ${soLanGuGanDay} lần trong  gần 30 phút qua. Chú ý giữ lưng thẳng nhé.`;
+    feedbackEl.className = "feedback-box feedback-warning";
+  } else {
+    message = `🚨 Bạn đã gù ${soLanGuGanDay} lần chỉ trong 30 phút! Có thể nên nghỉ ngơi, đứng dậy và vươn vai.`;
+    feedbackEl.className = "feedback-box feedback-warning";
+  }
+
+  // Nếu ngồi quá lâu thì thêm gợi ý vận động
+  if (thoiGianNghe >= 60) {
+    message += `\n⏰ Bạn đã ngồi học ${thoiGianNghe} phút liên tục. Hãy đứng lên đi lại hoặc tập vài động tác giãn cơ.`;
+  }
+
+  // Nếu gù nhiều thì gợi ý hoạt động thể thao nhỏ
+  if (soLanGuGanDay >= 10) {
+    message += `\n💡 Gợi ý: Thử xoay vai, chống đẩy hoặc plank 1-2 phút để cải thiện tư thế.`;
+  }
+
+  feedbackEl.innerText = message;
+}
+// ======Thông báo gợi ý khi ngồi gù quá lâu =====
+let thoiDiemBatDau = Date.now();
+let daThongBao = false;
+
+function kiemTraNgoiLau() {
+  const now = Date.now();
+  const MOT_GIO = 3600000; // 1 giờ
+
+  if (now - thoiDiemBatDau >= MOT_GIO && !daThongBao) {
+    document.getElementById("popup-ngoi-lau").style.display = "block";
+    daThongBao = true;
+    console.log("Đã ngồi lâu, hiển thị popup nhắc nhở.");
+  }
+}
+
+document.getElementById("dong-popup").onclick = () => {
+  document.getElementById("popup-ngoi-lau").style.display = "none";
+  daThongBao = false;
+  thoiDiemBatDau = Date.now(); // reset lại khi đóng popup
+};
+
