@@ -459,11 +459,11 @@ function hienThiLichSuGu() {
   const thongkegu = document.getElementById("thongkegu");
   if (!thongkegu) return;
   if (data.length === 0) {
-    thongkegu.innerHTML = "<i>Chưa có lần gù nào trong 7 ngày gần đây.</i>";
+    thongkegu.innerHTML = "<i>Chưa có lần gù nào trong 7 ngày gần đây....</i>";
     return;
   }
   thongkegu.innerHTML = `
-    <b>Đã ghi nhận ${data.length} lần gù trong 7 ngày gần nhất:</b>
+    <b>Đã ghi nhận ${data.length} lần gù trong 7 ngày gần nhất....:</b>
     <ul style="max-height:300px;overflow:auto;padding-left:1.2em;">
       ${data
         .slice()
