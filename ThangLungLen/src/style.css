@@ -38,12 +38,13 @@ body {
 .button {
   padding: 1.5em;
   border-radius: 15em;
-  background-color: red;
-  color: white;
+  background-color: #007bff;
+  color: #eeeeee ;
   cursor: pointer;
+  font-weight: bold;
 }
 .button:hover {
-  background-color: blue;
+  background-color: #0069d9;
   transition: ease-in-out 200ms;
 }
 .button-container {
@@ -160,14 +161,18 @@ dialog button#close-lichsugu {
   font-size: 14px;
 }
 #lich-su-gu {
-  width: 350px;
+  width: 35%;
   max-width: 90%;
   padding: 15px 20px;
-  border-radius: 10px;
-  border: 1px solid #ccc;
+  text-align: center;
   opacity: 0;
   transform: translateX(-100%);   /* ban đầu ở bên trái */
   transition: transform 0.4s ease, opacity 0.4s ease;
+  
+  border-radius: 12px;
+  border: none;
+  box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+  animation: slideInRight 0.4s ease;
 }
 
 #lich-su-gu.hien {
@@ -184,14 +189,7 @@ dialog button#close-lichsugu {
   background: rgba(0, 0, 0, 0.4);
   transition: background 0.4s ease;
 }
-#lich-su-gu {
-  width: 300px; /* cho bé lại */
-  padding: 15px;
-  border-radius: 12px;
-  border: none;
-  box-shadow: 0 5px 15px rgba(0,0,0,0.3);
-  animation: slideInRight 0.4s ease;
-}
+
 
 .feedback-box {
   margin-top: 10px;
@@ -262,4 +260,7 @@ dialog button#close-lichsugu {
 @keyframes slideDown {
   from { transform: translate(-50%, -60%); opacity: 0; }
   to { transform: translate(-50%, -50%); opacity: 1; }
+}
+#hocsinh,#phuhuynh {
+  padding:0.5em;
 }

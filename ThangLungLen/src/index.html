@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="vn">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -17,53 +17,77 @@
   <body>
     <button id="keypoint-toggle"></button>
     <dialog id="lich-su-gu">
-  <button id="close-lichsugu">X</button>
-  <div id="thongkegu">Lịch sử gù sẽ hiển thị ở đây...</div>
+      <button id="close-lichsugu">X</button>
+      <div id="thongkegu">Lịch sử gù sẽ hiển thị ở đây...</div>
 
-  <!-- Thêm feedback ngay dưới thống kê -->
-  <div id="feedback" class="feedback-box"></div>
-</dialog>
+      <!-- Thêm feedback ngay dưới thống kê -->
+      <div id="feedback" class="feedback-box"></div>
+    </dialog>
 
     <canvas id="canvas"></canvas>
     <video id="webcam"></video>
     <div id="statusDiv">Ngồi đúng tư thế và bấm bắt đầu theo dõi</div>
     <div class="button-container">
-      <button class="button" id="nutbatdau" ></button>
+      <button class="button" id="nutbatdau"></button>
       <button class="button" id="huongdan"></button>
       <button class="button" id="lichsugu"></button>
     </div>
 
     <div class="huongdan" id="man-hinh-huong-dan">
-  <img src="assets/huongdan.jpg" alt="huongdan" />
+      <div id="chuyentrang">
+        <button class="button" id = "hocsinh" onclick= "showPage('huongdanhocsinh')" >Dành cho học sinh</button>
+        <button class="button" id="phuhuynh" onclick ="showPage('huongdanphuhuynh')">Dành cho phụ huynh</button>
+      </div>
+      <div class ="page" id="huongdanhocsinh">
+        <img src="assets/huongdan.jpg" alt="huongdan" /><!-- Bước 1 -->
+        <div class="buoc">
+          <h2 class="tieude">Bước 1: Chuẩn bị</h2>
+          <p class="noidung">
+            - Ngồi thẳng lưng, hai chân đặt vuông góc chạm sàn.<br />
+            - Đặt camera đối diện, sao cho thấy rõ mặt và vai, đủ sáng.<br />
+          </p>
+        </div>
 
-  <!-- Bước 1 -->
-  <div class="buoc">
-    <h2 class="tieude">Bước 1: Chuẩn bị</h2>
-    <p class="noidung">
-      - Ngồi thẳng lưng, hai chân đặt vuông góc chạm sàn.<br>
-      - Đặt camera đối diện, sao cho thấy rõ mặt và vai, đủ sáng.<br>
-    </p>
-  </div>
+        <!-- Bước 2 -->
+        <div class="buoc">
+          <h2 class="tieude">Bước 2: Lưu tư thế chuẩn</h2>
+          <p class="noidung">
+            - Ngồi vào tư thế đúng (ngực cách bàn ~½ gang tay, mắt cách vở ~1,5
+            gang tay).<br />
+            - Lưng hơi tựa vào ghế, không ngả quá nhiều.<br />
+            - Giữ nguyên tư thế lưng, không di chuyển.<br />
+            - Nhấn nút <b>“Bắt đầu theo dõi”</b> để lưu lại tư thế chuẩn.
+          </p>
 
-  <!-- Bước 2 -->
-  <div class="buoc">
-    <h2 class="tieude">Bước 2: Lưu tư thế chuẩn</h2>
-    <p class="noidung">
-      - Ngồi vào tư thế đúng (ngực cách bàn ~½ gang tay, mắt cách vở ~1,5 gang tay).<br>
-      - Lưng hơi tựa vào ghế, không ngả quá nhiều.<br>
-      - Giữ nguyên tư thế, không di chuyển.<br>
-      - Nhấn nút <b>“Bắt đầu theo dõi”</b> để lưu lại tư thế chuẩn.
-      <p style="color: red;">(Lưu ý: Sau khi bấm dừng theo dõi cần ngồi đúng tư thế chuẩn rồi bấm lại để tiếp tục theo dõi)<p>
-    </p>
-  </div>
-</div>
+          <p style="color: red">
+            (Lưu ý: Sau khi bấm dừng theo dõi cần ngồi đúng tư thế chuẩn rồi bấm
+            lại để tiếp tục theo dõi)
+          </p>
+          <p></p>
+        </div>
+      </div>
+      <div class = "page" id ="huongdanphuhuynh">
+        <div class="buoc">
+          <h2 class="tieude">Hướng dẫn dành cho phụ huynh</h2>
+          <p class="noidung">
+            - Hỗ trợ con ngồi đúng tư thế: lưng thẳng, chân chạm sàn, mặt và vai rõ trên camera.<br />
+            - Đảm bảo ánh sáng đủ để hệ thống nhận diện.<br />
+            - Khi chuẩn bị bấm <b>“Bắt đầu theo dõi”</b>, phụ huynh vui lòng tránh mặt ra khỏi camera để hệ thống chỉ nhận diện tư thế của con.<br />
+            - Sau khi hệ thống bắt đầu, có thể quan sát kết quả và nhắc nhở con nếu cần.<br />
+            - Nếu cần dừng theo dõi, hãy đảm bảo con vẫn ngồi đúng tư thế trước khi tiếp tục.
+          </p>
+        </div>
+      </div>
+    </div>
     <audio id="audio" src="assets/sound.mp3"></audio>
   </body>
 </html>
 <!-- Popup nhắc ngồi lâu -->
 <div id="popup-ngoi-lau" class="popup">
   <div class="popup-content">
-    <p>⏰ Bạn đã ngồi học hơn 1 tiếng rồi. Hãy đứng dậy, đi lại và vươn vai nhé!</p>
+    <p>
+      ⏰ Bạn đã ngồi học hơn 1 tiếng rồi. Hãy đứng dậy, đi lại và vươn vai nhé!
+    </p>
     <button id="dong-popup">Đã hiểu</button>
   </div>
 </div>
