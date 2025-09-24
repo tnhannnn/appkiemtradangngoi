@@ -478,6 +478,9 @@ function xoaLichSuGu() {
 console.log("Script đã tải xong.");
 //===== Feedback gợi ý khi mở lịch sử gù =====
 let soLanGu = 0;
+// Thêm biến lưu thời điểm mở web
+const thoiDiemMoWeb = Date.now();
+
 function capNhatFeedback() {
   const feedbackEl = document.getElementById("feedback");
   const data = getLichSuGu();
@@ -491,7 +494,8 @@ function capNhatFeedback() {
   const minTime = now - THOI_GIAN_CHECK;
   const guGanDay = data.filter((item) => item.time >= minTime);
   const soLanGuGanDay = guGanDay.length;
-  const thoiGianNghe = Math.floor((now - data[0].time) / (1000 * 60));
+  // Sửa cách tính thoiGianNghe: chỉ tính từ lúc mở web
+  const thoiGianNghe = Math.floor((now - thoiDiemMoWeb) / (1000 * 60));
   let message = "";
   if (soLanGuGanDay === 0) {
     message = "👍 Bạn giữ tư thế rất tốt trong 30 phút gần đây!";
