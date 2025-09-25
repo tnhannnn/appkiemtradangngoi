@@ -313,8 +313,8 @@ async function KiemTraTuThe(keypoints) {
   const gocTaiMatMuiTrai = goc(taiTrai, mui, vaiTrai);
   const gocTaiMatMuiPhai = goc(taiPhai, mui, vaiPhai);
   const TB_gocTaiMatMui = (gocTaiMatMuiTrai + gocTaiMatMuiPhai) / 2;
-  const NGUONG_DIST = 0.1;//vị trí điểm ko lệch quá 10%
-  const NGUONG_GOC = 15;//góc ko lệch quá 15 độ 
+  const NGUONG_DIST = 0.15;//vị trí điểm ko lệch quá 15%
+  const NGUONG_GOC = 20;//góc ko lệch quá 20 độ 
   let canhbao = "";//khởi tạo nội dung cảnh báo 
   //các trường hợp gù 
   if (Math.abs(dMuiTrungDiemVai - TuTheDung.dMuiTrungDiemVai) > NGUONG_DIST) {
