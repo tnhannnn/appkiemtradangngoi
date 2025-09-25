@@ -78,11 +78,11 @@ body {
   border-radius: 12px;
 }
 
-.huongdan h2,
+/*.huongdan h2,
 .huongdan p {
   color: #222;
   text-align: center;
-}
+}*/
 
 #statusDiv {
   font-size: 22px;
@@ -161,7 +161,7 @@ dialog button#close-lichsugu {
   font-size: 14px;
 }
 #lich-su-gu {
-  width: 35%;
+  width: 28%;
   max-width: 90%;
   padding: 15px 20px;
   text-align: center;
@@ -263,4 +263,7 @@ dialog button#close-lichsugu {
 }
 #hocsinh,#phuhuynh {
   padding:0.5em;
+}
+i{
+  font-size:1.25em;
 }
