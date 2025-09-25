@@ -306,15 +306,15 @@ async function KiemTraTuThe(keypoints) {
   };
   const dMuiTrungDiemVai = khoangcach(mui, TrungDiemVai) / shoulderWidth;
   const dTaiVaiTrai = khoangcach(taiTrai, vaiTrai) / shoulderWidth;
-  const dTaiVaiPhai = khoangcach(taiPhai, vaiPhai) / shoulderWidth;// chuẩn hóa theo chiều rộng vai
+  const dTaiVaiPhai = khoangcach(taiPhai, vaiPhai) / shoulderWidth;
   const gocTrai = goc(vaiTrai, taiTrai, mui);
   const gocPhai = goc(vaiPhai, taiPhai, mui);
   const TB_goc = (gocTrai + gocPhai) / 2;
   const gocTaiMatMuiTrai = goc(taiTrai, mui, vaiTrai);
   const gocTaiMatMuiPhai = goc(taiPhai, mui, vaiPhai);
   const TB_gocTaiMatMui = (gocTaiMatMuiTrai + gocTaiMatMuiPhai) / 2;
-  const NGUONG_DIST = 0.15;//vị trí điểm ko lệch quá 10%
-  const NGUONG_GOC = 20;//góc ko lệch quá 15 độ 
+  const NGUONG_DIST = 0.1;//vị trí điểm ko lệch quá 10%
+  const NGUONG_GOC = 15;//góc ko lệch quá 15 độ 
   let canhbao = "";//khởi tạo nội dung cảnh báo 
   //các trường hợp gù 
   if (Math.abs(dMuiTrungDiemVai - TuTheDung.dMuiTrungDiemVai) > NGUONG_DIST) {
