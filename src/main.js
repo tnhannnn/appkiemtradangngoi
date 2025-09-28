@@ -528,7 +528,7 @@ function capNhatFeedback() {
   }
   feedbackEl.innerText = message;
 }
-// ======Thông báo gợi ý khi ngồi gù quá lâu =====
+// ======Thông báo gợi ý khi ngồi quá lâu =====
 let thoiDiemBatDau = Date.now();
 let daThongBao = false;
 function kiemTraNgoiLau() {
