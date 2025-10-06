@@ -71,15 +71,12 @@ h1 {
   justify-content: flex-start;
   align-items: center;
   gap: 1em;
-  z-index: 2;
+  z-index: 4;
   position: absolute;
-  left: 50%;
-  top: 50%;
-  transform: translate(-50%, -50%);
   background: linear-gradient(135deg, #e0f7fa, #f1f8e9);
   box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
   padding: 20px;
-  max-width: 50vw;
+  max-width: 40vw;
   max-height: 90vh;
   overflow-y: auto;
 }
