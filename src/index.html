@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title></title>
+    <title>ThangLungLen</title>
     <link href="./style.css" rel="stylesheet" />
     <script src="./main.js" defer></script>
     <script src="./tf.min.js"></script>
@@ -15,6 +15,7 @@
     <!--gắn link font roboto của google vào để hiện tiếng việt cho rõ-->
   </head>
   <body>
+    <h1>Hệ thống giám sát tư thế </h1>
     <button id="keypoint-toggle"></button>
     <dialog id="lich-su-gu">
       <button id="close-lichsugu">X</button>
@@ -34,11 +35,24 @@
     </div>
 
     <div class="huongdan" id="man-hinh-huong-dan">
+      <button id="close-huongdan">X</button>
       <div id="chuyentrang">
-        <button class="button" id = "hocsinh" onclick= "showPage('huongdanhocsinh')" >Dành cho học sinh</button>
-        <button class="button" id="phuhuynh" onclick ="showPage('huongdanphuhuynh')">Dành cho phụ huynh</button>
+        <button
+          class="button"
+          id="hocsinh"
+          onclick="showPage('huongdanhocsinh')"
+        >
+          Dành cho học sinh
+        </button>
+        <button
+          class="button"
+          id="phuhuynh"
+          onclick="showPage('huongdanphuhuynh')"
+        >
+          Dành cho phụ huynh
+        </button>
       </div>
-      <div class ="page" id="huongdanhocsinh">
+      <div class="page" id="huongdanhocsinh">
         <img src="assets/huongdan.jpg" alt="huongdan" /><!-- Bước 1 -->
         <div class="buoc">
           <h2 class="tieude">Bước 1: Chuẩn bị</h2>
@@ -60,31 +74,43 @@
           </p>
 
           <p style="color: red">
-            (Lưu ý: Mỗi một lần sử dụng ứng dụng cần tạo một tư thế đúng, ứng dụng không lưu tư thế đúng cho mọi lần sử dụng.)
+            (Lưu ý: Mỗi một lần sử dụng ứng dụng cần tạo một tư thế đúng, ứng
+            dụng không lưu tư thế đúng cho mọi lần sử dụng.)
           </p>
           <p></p>
         </div>
       </div>
-      <div class = "page" id ="huongdanphuhuynh">
-        <img src="assets/huongdan2.jpg" alt="huongdan2">
+      <div class="page" id="huongdanphuhuynh">
+        <img src="assets/huongdan2.jpg" alt="huongdan2" />
         <div class="buoc">
           <h2 class="tieude">Bước 1</h2>
           <div class="noidung">Hỗ trợ trẻ ngồi đúng tư thế học</div>
         </div>
         <div class="buoc">
           <h2 class="tieude">Bước 2</h2>
-          <div class="noidung">Căn chỉnh để cả đầu và vai của trẻ đều ở trong khung camera</div>
+          <div class="noidung">
+            Căn chỉnh để cả đầu và vai của trẻ đều ở trong khung camera
+          </div>
         </div>
         <div class="buoc">
           <h2 class="tieude">Bước 3</h2>
-          <div class="noidung">Bấm bắt đầu theo dõi, phụ huynh nên tránh mặt khỏi camera để ứng dụng có thể nhận diện được trẻ là đối tượng để theo dõi tư thế. Nếu ứng dụng hiển thị tư thế đúng thì có nghĩa là ứng dụng đã lưu được tư thế đúng của trẻ. Lúc này cha mẹ có thể yên tâm để con ngồi học cùng app.</div>
+          <div class="noidung">
+            Bấm bắt đầu theo dõi, phụ huynh nên tránh mặt khỏi camera để ứng
+            dụng có thể nhận diện được trẻ là đối tượng để theo dõi tư thế. Nếu
+            ứng dụng hiển thị tư thế đúng thì có nghĩa là ứng dụng đã lưu được
+            tư thế đúng của trẻ. Lúc này cha mẹ có thể yên tâm để con ngồi học
+            cùng app.
+          </div>
         </div>
         <p style="color: red">
-            (Lưu ý: Mỗi một lần sử dụng ứng dụng cần tạo một tư thế đúng, ứng dụng không lưu tư thế đúng cho mọi lần sử dụng.)
-          </p>
+          (Lưu ý: Mỗi một lần sử dụng ứng dụng cần tạo một tư thế đúng, ứng dụng
+          không lưu tư thế đúng cho mọi lần sử dụng.)
+        </p>
       </div>
     </div>
-    <audio id="audio" src="assets/sound.mp3"></audio>
+    <audio id="taibanlech" src="./assets/taibanlech.mp3"></audio
+    ><audio id="goccothaydoi" src="./assets/goccobanthaydoi.mp3"></audio
+    ><audio id="daubancui" src="./assets/daubancuisauqua.mp3"></audio>
   </body>
 </html>
 <!-- Popup nhắc ngồi lâu -->

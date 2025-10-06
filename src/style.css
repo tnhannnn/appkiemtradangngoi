@@ -8,7 +8,16 @@ body {
   height: 100vh;
   overflow: hidden;
   font-family: "Roboto", sans-serif;
-  background: linear-gradient(135deg, violet, pink, white);
+  background: linear-gradient(45deg, #7bd7f0, #91dff3, #b6e9f7, #dbf3fa);
+}
+h1 {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  top: 0.5em;
+  background-color: #fff;
+  padding: 0.25em;
+  border-radius: 15px;
 }
 #webcam {
   position: absolute;
@@ -18,10 +27,10 @@ body {
   width: auto;
   transform: translateX(-50%) scaleX(-1);
   left: 50%;
-  top: 20px;
+  top: 10%;
   border-radius: 15px;
   outline: 2px solid black;
-  height: calc(100vh - 20px - 20px);
+  height: calc(100vh - 10% - 20px);
 }
 #canvas {
   display: none;
@@ -39,7 +48,7 @@ body {
   padding: 1.5em;
   border-radius: 15em;
   background-color: #007bff;
-  color: #eeeeee ;
+  color: #eeeeee;
   cursor: pointer;
   font-weight: bold;
 }
@@ -59,7 +68,7 @@ body {
   border-radius: 1.5em;
   display: flex;
   flex-direction: column;
-  justify-content: center;
+  justify-content: flex-start;
   align-items: center;
   gap: 1em;
   z-index: 2;
@@ -70,10 +79,23 @@ body {
   background: linear-gradient(135deg, #e0f7fa, #f1f8e9);
   box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
   padding: 20px;
-  max-width: 90%;
+  max-width: 50vw;
+  max-height: 90vh;
+  overflow-y: auto;
 }
-
-.huongdan img {
+#close-huongdan {
+  position: sticky;
+  top:10px;
+  right: 10px;
+  margin-left: auto;
+  padding: 0.3em 0.6em;
+  border: none;
+  border-radius: 50%;
+  background: red;
+  color: white;
+  cursor: pointer;
+}
+.huongdan .page img {
   width: max(100px, 30vw);
   border-radius: 12px;
 }
@@ -86,15 +108,14 @@ body {
 
 #statusDiv {
   font-size: 22px;
-  z-index: 999;
+  z-index: 1;
   position: absolute;
-  top: 0px;
+  top: 13%;
   left: 50%;
   transform: translateX(-50%);
   background-color: white;
   padding: 0.5em;
   border-radius: 15px;
-  top: 20px;
 }
 #statusDiv .bad-poisture {
   background-color: red;
@@ -166,30 +187,29 @@ dialog button#close-lichsugu {
   padding: 15px 20px;
   text-align: center;
   opacity: 0;
-  transform: translateX(-100%);   /* ban đầu ở bên trái */
+  transform: translateX(-100%); /* ban đầu ở bên trái */
   transition: transform 0.4s ease, opacity 0.4s ease;
-  
+
   border-radius: 12px;
   border: none;
-  box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
   animation: slideInRight 0.4s ease;
 }
 
 #lich-su-gu.hien {
   opacity: 1;
-  transform: translateX(0);       /* trượt vào giữa */
+  transform: translateX(0); /* trượt vào giữa */
 }
 
 #lich-su-gu.dong {
   opacity: 0;
-  transform: translateX(100%);    /* trượt ra bên phải */
+  transform: translateX(100%); /* trượt ra bên phải */
 }
 
 #lich-su-gu::backdrop {
   background: rgba(0, 0, 0, 0.4);
   transition: background 0.4s ease;
 }
-
 
 .feedback-box {
   margin-top: 10px;
@@ -214,30 +234,39 @@ dialog button#close-lichsugu {
 }
 
 @keyframes slideInRight {
-  from { transform: translateX(100%); opacity: 0; }
-  to { transform: translateX(0); opacity: 1; }
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
 }
 /* Popup mặc định ẩn */
 #popup-ngoi-lau {
-  display: none; 
+  display: none;
   position: fixed;
-  top: 0; left: 0;
-  width: 100%; height: 100%;
-  background: rgba(0,0,0,0.4);
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.4);
   z-index: 9999;
 }
 
 /* Khung nội dung popup */
 #popup-ngoi-lau .popup-content {
   position: absolute;
-  top: 50%; left: 50%;
+  top: 50%;
+  left: 50%;
   transform: translate(-50%, -50%);
   background: white;
   padding: 20px;
   border-radius: 10px;
   width: 300px;
   text-align: center;
-  box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
   animation: slideDown 0.4s ease;
 }
 
@@ -258,12 +287,19 @@ dialog button#close-lichsugu {
 
 /* Hiệu ứng trượt xuống */
 @keyframes slideDown {
-  from { transform: translate(-50%, -60%); opacity: 0; }
-  to { transform: translate(-50%, -50%); opacity: 1; }
+  from {
+    transform: translate(-50%, -60%);
+    opacity: 0;
+  }
+  to {
+    transform: translate(-50%, -50%);
+    opacity: 1;
+  }
 }
-#hocsinh,#phuhuynh {
-  padding:0.5em;
+#hocsinh,
+#phuhuynh {
+  padding: 0.5em;
 }
-i{
-  font-size:1.25em;
+i {
+  font-size: 1.25em;
 }

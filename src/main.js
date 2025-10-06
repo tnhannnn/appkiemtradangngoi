@@ -319,18 +319,21 @@ async function KiemTraTuThe(keypoints) {
   //các trường hợp gù 
   if (Math.abs(dMuiTrungDiemVai - TuTheDung.dMuiTrungDiemVai) > NGUONG_DIST) {
     canhbao = "⚠️ Đầu cúi/gập khác nhiều so với tư thế chuẩn!";
+    audio = daubancui;
     isThangLung = false;
   } else if (
     Math.abs(dTaiVaiTrai - TuTheDung.dTaiVaiTrai) > NGUONG_DIST ||
     Math.abs(dTaiVaiPhai - TuTheDung.dTaiVaiPhai) > NGUONG_DIST
   ) {
     canhbao = "⚠️ Tai lệch nhiều so với vai (có thể gù/lệch)!";
+    audio = taibanlech;
     isThangLung = false;
   } else if (
     Math.abs(TB_goc - TuTheDung.TB_goc) > NGUONG_GOC ||
     Math.abs(TB_gocTaiMatMui - TuTheDung.TB_gocTaiMatMui) > NGUONG_GOC
   ) {
     canhbao = "⚠️ Góc cổ thay đổi nhiều (có thể gù)!";
+    audio = goccothaydoi;
     isThangLung = false;
   }
   if (canhbao) {
@@ -450,10 +453,14 @@ function hienThiLichSuGu() {
 }
 
 // ====== Phát âm thanh cảnh báo & lưu lịch sử gù ======
+const taibanlech = document.getElementById("taibanlech");
+  const goccothaydoi = document.getElementById("goccothaydoi");
+  const daubancui = document.getElementById("daubancui");
+  let audio =null;
 let thoiDiemSai = null;
 let isCanhBao = false;
 function phatAmThanh() {
-  const audio = document.getElementById("audio");//kết nối audio
+  
   //nếu thẳng lưng trở lại , dừng audio 
   if (isThangLung) {
     thoiDiemSai = null;
