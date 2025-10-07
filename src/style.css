@@ -63,9 +63,8 @@ h1 {
   bottom: 0px;
   z-index: 3;
 }
-.huongdan {
-  visibility: hidden;
-  border-radius: 1.5em;
+.huongdan[open] {
+  /* Xoá visibility, dùng style dialog */
   display: flex;
   flex-direction: column;
   justify-content: flex-start;
@@ -79,12 +78,36 @@ h1 {
   max-width: 40vw;
   max-height: 90vh;
   overflow-y: auto;
+  border-radius: 12px;
+  border: none;
+  width: 35%;
+  text-align: center;
+  opacity: 0;
+  transform: translateX(-100%);
+  transition: transform 0.4s ease, opacity 0.4s ease;
+  animation: slideInLeft 0.4s ease;
 }
+
+.huongdan.hien {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+.huongdan.dong {
+  opacity: 0;
+  transform: translateX(100%);
+}
+
+.huongdan::backdrop {
+  background: rgba(0, 0, 0, 0.4);
+  transition: background 0.4s ease;
+}
+
+/* Nút đóng */
 #close-huongdan {
-  position: sticky;
-  top:10px;
+  position: absolute;
+  top: 10px;
   right: 10px;
-  margin-left: auto;
   padding: 0.3em 0.6em;
   border: none;
   border-radius: 50%;
@@ -92,6 +115,7 @@ h1 {
   color: white;
   cursor: pointer;
 }
+
 .huongdan .page img {
   width: max(100px, 30vw);
   border-radius: 12px;
@@ -190,7 +214,7 @@ dialog button#close-lichsugu {
   border-radius: 12px;
   border: none;
   box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
-  animation: slideInRight 0.4s ease;
+  animation: slideInLeft 0.4s ease; /* Đổi từ slideInRight sang slideInLeft */
 }
 
 #lich-su-gu.hien {
@@ -200,7 +224,7 @@ dialog button#close-lichsugu {
 
 #lich-su-gu.dong {
   opacity: 0;
-  transform: translateX(100%); /* trượt ra bên phải */
+  transform: translateX(-100%); /* trượt về bên trái */
 }
 
 #lich-su-gu::backdrop {
@@ -230,9 +254,9 @@ dialog button#close-lichsugu {
   border-left: 5px solid #006600;
 }
 
-@keyframes slideInRight {
+@keyframes slideInLeft {
   from {
-    transform: translateX(100%);
+    transform: translateX(-100%);
     opacity: 0;
   }
   to {
@@ -240,6 +264,7 @@ dialog button#close-lichsugu {
     opacity: 1;
   }
 }
+
 /* Popup mặc định ẩn */
 #popup-ngoi-lau {
   display: none;

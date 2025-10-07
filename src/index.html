@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="vn">
+<html lang="vi">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -15,7 +15,7 @@
     <!--gắn link font roboto của google vào để hiện tiếng việt cho rõ-->
   </head>
   <body>
-    <h1>Hệ thống giám sát tư thế </h1>
+    <h1 style="z-index: 999;">Hệ thống giám sát tư thế</h1>
     <button id="keypoint-toggle"></button>
     <dialog id="lich-su-gu">
       <button id="close-lichsugu">X</button>
@@ -34,7 +34,7 @@
       <button class="button" id="lichsugu"></button>
     </div>
 
-    <div class="huongdan" id="man-hinh-huong-dan">
+    <dialog class="huongdan" id="huongdan-dialog">
       <button id="close-huongdan">X</button>
       <div id="chuyentrang">
         <button
@@ -95,9 +95,9 @@
         <div class="buoc">
           <h2 class="tieude">Bước 3</h2>
           <div class="noidung">
-            Bấm bắt đầu theo dõi, phụ huynh nên tránh mặt khỏi camera để ứng
+            Bấm "Bắt đầu theo dõi", phụ huynh nên tránh mặt khỏi camera để ứng
             dụng có thể nhận diện được trẻ là đối tượng để theo dõi tư thế. Nếu
-            ứng dụng hiển thị tư thế đúng thì có nghĩa là ứng dụng đã lưu được
+            ứng dụng hiển thị "Tư thế đúng" thì có nghĩa là ứng dụng đã lưu được
             tư thế đúng của trẻ. Lúc này cha mẹ có thể yên tâm để con ngồi học
             cùng app.
           </div>
@@ -107,18 +107,20 @@
           không lưu tư thế đúng cho mọi lần sử dụng.)
         </p>
       </div>
+    </dialog>
+    <audio id="taibanlech" src="./assets/taibanlech.mp3"></audio>
+    <audio id="goccothaydoi" src="./assets/goccobanthaydoi.mp3"></audio>
+    <audio id="daubancui" src="./assets/daubancuisauqua.mp3"></audio>
+
+    <!-- Popup nhắc ngồi lâu đặt ở đây -->
+    <div id="popup-ngoi-lau" class="popup">
+      <div class="popup-content">
+        <p>
+          ⏰ Bạn đã ngồi học hơn 1 tiếng rồi. Hãy đứng dậy, đi lại và vươn vai
+          nhé!
+        </p>
+        <button id="dong-popup">Đã hiểu</button>
+      </div>
     </div>
-    <audio id="taibanlech" src="./assets/taibanlech.mp3"></audio
-    ><audio id="goccothaydoi" src="./assets/goccobanthaydoi.mp3"></audio
-    ><audio id="daubancui" src="./assets/daubancuisauqua.mp3"></audio>
   </body>
 </html>
-<!-- Popup nhắc ngồi lâu -->
-<div id="popup-ngoi-lau" class="popup">
-  <div class="popup-content">
-    <p>
-      ⏰ Bạn đã ngồi học hơn 1 tiếng rồi. Hãy đứng dậy, đi lại và vươn vai nhé!
-    </p>
-    <button id="dong-popup">Đã hiểu</button>
-  </div>
-</div>
