@@ -67,7 +67,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   lichSuGuBtn.textContent = "Hiện lịch sử gù";
   btn.textContent = "Bắt đầu theo dõi";
   keypointToggle.innerHTML = matHien;
-  huongdan.textContent = "Hiện hướng dẫn";
+  huongdan.textContent = "Hướng dẫn";
   //xử lí chuyển đổi qua lại 2 icon của con măt hiện keypoint
   keypointToggle.onclick = () => {
     if (isCanvaOn) {
@@ -94,7 +94,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       setTimeout(() => {
         huongdanDialog.close();
       }, 400);
-      huongdan.textContent = "Hiện hướng dẫn";
+      huongdan.textContent = "Hướng dẫn";
       isHuongDanOpen = false;
     }
   };
@@ -105,7 +105,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     setTimeout(() => {
       huongdanDialog.close();
     }, 400);
-    huongdan.textContent = "Hiện hướng dẫn";
+    huongdan.textContent =  "Hướng dẫn";
     isHuongDanOpen = false;
   };
   //logic nút theo dõi/dừng theo dõi
