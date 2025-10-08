@@ -312,6 +312,8 @@ async function KiemTraTuThe(keypoints) {
       "⚠️ Có vẻ bạn đã ra khỏi khung hình hoặc keypoint không rõ!",
       "red"
     );
+    isThangLung=false;
+    audio = kodulieu;
     return false; //độ chính xác ko đủ tin cậy sẽ bỏ qua tính toán
   }
   if (!TuTheDung) {
@@ -479,6 +481,7 @@ function hienThiLichSuGu() {
 const taibanlech = document.getElementById("taibanlech");
 const goccothaydoi = document.getElementById("goccothaydoi");
 const daubancui = document.getElementById("daubancui");
+const kodulieu = document.getElementById("kodulieu");
 let audio = null;
 let thoiDiemSai = null;
 let isCanhBao = false;
