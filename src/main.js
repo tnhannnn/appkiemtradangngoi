@@ -345,7 +345,7 @@ async function KiemTraTuThe(keypoints) {
   if (Math.abs(dMuiTrungDiemVai - TuTheDung.dMuiTrungDiemVai) > NGUONG_DIST) {
     canhbao = "⚠️ Đầu cúi/gập khác nhiều so với tư thế chuẩn!";
     audio = daubancui;
-    isThangLung = false;
+    isThangLung = false; 
   } else if (
     Math.abs(dTaiVaiTrai - TuTheDung.dTaiVaiTrai) > NGUONG_DIST ||
     Math.abs(dTaiVaiPhai - TuTheDung.dTaiVaiPhai) > NGUONG_DIST
@@ -500,7 +500,7 @@ function phatAmThanh() {
     if (thoiGianSai > 5000 && !isCanhBao) {
       //gù hơn 5s và chưa cảnh báo
       audio.currentTime = 0;
-      audio.play().catch((err) => console.log("ko phat duoc", err));
+      audio.play().catch((err) => alert("ko phat duoc", err));
       isCanhBao = true;
       themLanGu(); //thêm lần gù (trong bộ nhớ )
       thoiDiemSai = Date.now();
@@ -510,7 +510,7 @@ function phatAmThanh() {
     if (isCanhBao && thoiGianSai > 5000) {
       //gù hơn 5s vẫn ko sửa , 5s phát tiếp
       audio.currentTime = 0;
-      audio.play().catch((err) => console.log("ko phat duoc", err));
+      audio.play().catch((err) => alert("ko phat duoc", err));
       thoiDiemSai = Date.now(); //reset thời gian để 5s sau phát lại
     }
   }
