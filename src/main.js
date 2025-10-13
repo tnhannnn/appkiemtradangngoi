@@ -329,7 +329,7 @@ async function KiemTraTuThe(keypoints) {
     x: (vaiTrai.x + vaiPhai.x) / 2,
     y: (vaiTrai.y + vaiPhai.y) / 2,
   };
-  const dMuiTrungDiemVai = khoangcach(mui, TrungDiemVai) / shoulderWidth;
+  const dDiemDuongThangMuiVai = dDiemDuongThang(vaiTrai, vaiPhai, mui) / shoulderWidth;
   const dTaiVaiTrai = khoangcach(taiTrai, vaiTrai) / shoulderWidth;
   const dTaiVaiPhai = khoangcach(taiPhai, vaiPhai) / shoulderWidth;
   const gocTrai = goc(vaiTrai, taiTrai, mui);
@@ -342,22 +342,23 @@ async function KiemTraTuThe(keypoints) {
   const NGUONG_GOC = 20; //góc ko lệch quá 20 độ
   let canhbao = ""; //khởi tạo nội dung cảnh báo
   //các trường hợp gù
-  if (Math.abs(dMuiTrungDiemVai - TuTheDung.dMuiTrungDiemVai) > NGUONG_DIST) {
-    canhbao = "⚠️ Đầu cúi/gập khác nhiều so với tư thế chuẩn!";
+  if (Math.abs(dDiemDuongThangMuiVai - TuTheDung.dDiemDuongThangMuiVai) > NGUONG_DIST) {
+    canhbao = "⚠️ Phát hiện đầu bạn tiến nhiều về phía trước. Có thể lưng đang gù!";
+    console.log(dDiemDuongThangMuiVai, TuTheDung.dDiemDuongThangMuiVai);
     audio = daubancui;
     isThangLung = false; 
   } else if (
-    Math.abs(dTaiVaiTrai - TuTheDung.dTaiVaiTrai) > NGUONG_DIST ||
-    Math.abs(dTaiVaiPhai - TuTheDung.dTaiVaiPhai) > NGUONG_DIST
+    Math.abs(dTaiVaiTrai - TuTheDung.dTaiVaiTrai) > 0.05 ||
+    Math.abs(dTaiVaiPhai - TuTheDung.dTaiVaiPhai) > 0.05
   ) {
-    canhbao = "⚠️ Tai lệch nhiều so với vai (có thể gù/lệch)!";
+    canhbao = "⚠️ Đầu bạn có thể đang cúi hơi sâu hoặc bị lệch sang 1 bên! Có thể lưng đang gù!";
     audio = taibanlech;
     isThangLung = false;
   } else if (
     Math.abs(TB_goc - TuTheDung.TB_goc) > NGUONG_GOC ||
     Math.abs(TB_gocTaiMatMui - TuTheDung.TB_gocTaiMatMui) > NGUONG_GOC
   ) {
-    canhbao = "⚠️ Góc cổ thay đổi nhiều (có thể gù)!";
+    canhbao = "⚠️ Phát hiện góc cổ thay đổi nhiều (có thể bạn đang cúi hơi sâu hoặc gù)!";
     audio = goccothaydoi;
     isThangLung = false;
   }
@@ -383,7 +384,7 @@ async function LuuTuTheDung(keypoints) {
     x: (vaiTrai.x + vaiPhai.x) / 2,
     y: (vaiTrai.y + vaiPhai.y) / 2,
   };
-  const dMuiTrungDiemVai = khoangcach(mui, TrungDiemVai) / shoulderWidth;
+  const dDiemDuongThangMuiVai = dDiemDuongThang(vaiTrai, vaiPhai, mui) / shoulderWidth;
   const dTaiVaiTrai = khoangcach(taiTrai, vaiTrai) / shoulderWidth;
   const dTaiVaiPhai = khoangcach(taiPhai, vaiPhai) / shoulderWidth;
   const gocTrai = goc(vaiTrai, taiTrai, mui);
@@ -393,7 +394,7 @@ async function LuuTuTheDung(keypoints) {
   const gocTaiMatMuiPhai = goc(taiPhai, mui, vaiPhai);
   const TB_gocTaiMatMui = (gocTaiMatMuiTrai + gocTaiMatMuiPhai) / 2;
   TuTheDung = {
-    dMuiTrungDiemVai,
+    dDiemDuongThangMuiVai,
     dTaiVaiTrai,
     dTaiVaiPhai,
     TB_goc,
@@ -416,6 +417,12 @@ function goc(a, b, c) {
 //hàm tính khoảng cách, cũng dùng vector
 function khoangcach(a, b) {
   return Math.sqrt((a.x - b.x) ** 2 + (a.y - b.y) ** 2);
+}
+function dDiemDuongThang(m, n, p) {
+  a = m.y - n.y;
+  b = n.x - m.x;
+  c = m.x * n.y - n.x * m.y;
+  return Math.abs(a * p.x + b * p.y + c) / Math.sqrt(a * a + b * b);
 }
 //hàm cảnh báo lên màn hình
 function CanhBao(thongBao, color = "black") {
